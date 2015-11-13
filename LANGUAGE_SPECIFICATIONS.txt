@@ -1,0 +1,151 @@
+Traditional Brainfuck:
+----------------------
+>            Increment pointer
+<            Decrement pointer
++            Increment value at pointer
+-            Decrement value at pointer
+,            Get character from input stream
+.            Output character to output stream
+[            Start a while loop
+]            Go back to the matching bracket
+
+Shortcuts:
+----------
+^            Set value at pointer to 0
+|a|          Add value a to the value at pointer
+_            Go back to pointer 0
+\string\     Print string to output stream
+;            Read string onto stack stopping at newline (null 
+             delimited)
+&            Output the (null delimited) string at stack pointer
+=            Clear/initialize function/program stack
+             (contextual)
+²            Square value at extended register 1
+³            Cube value at extended register 1
+§            Switch value at pointer with value in register 1
+c            Clear screen (nasty system call to cls (windows) or 
+             clear (linux))
+
+Comments:
+---------
+# comment    Single line comment
+/comment/    Multiline comment
+
+Debugging:
+----------
+h            Output hexadecimal equivilent of value at pointer
+d            Output decimal equivilent of value at pointer
+v            Toggle verbose mode
+?            Breakpoint (with debug output)
+@            Signal error condition
+~            Set value at pointer to random between 0-255
+!            Toggle step by step mode (with debug output if
+             running in verbose mode)
+p0-9         Print value in specified register
+
+Functions:
+----------
+(name)        Initialize function name
+(name):code:  Define function
+`name`        Call function defined by name
+i{somefile}   Include somefile (for externally defined 
+              functions)
+
+Conditionals:
+-------------
+{a,b:code}  If a < value at pointer < b, execute code
+{a,:code}   If a < value at pointer, execute code
+{,a:code}   If a > value at pointer, execute code
+{a=b:code}  If a <= value at pointer <= b, execute code
+{a=:code}   If a <= value at pointer, execute code
+{=a:code}   If a >= value at pointer, execute code
+{!a:code}   If a != value at pointer, execute code
+
+Jumps:
+------
+j{a}       Jump pointer to a
+j{$a}      Jump pointer to value in register a
+j[a]       Relative jump a instructions (negative for backward 
+           jump)
+j[]        Jump pointer to value in pointer
+
+Stack:
+------
+"            Push value at pointer onto stack
+'            Pop value off the stack into the pointer
+r"           Push value in register 1 onto stack
+e"           Push value in extended register 1 onto stack
+r'           Pop value off the stack into register 1
+e'           Pop value off the stack into extended register 1
+
+Registers:
+----------
+$0           Nop - Read-only register, always holds 0
+$1           Put value at pointer into register 1
+$2           Put value at pointer into register 2
+$3           Put value at pointer into register 3
+$4           Put value at pointer into register 4
+$5           Put value at pointer into register 5 (stack 
+             pointer)
+$6           Extended register 1
+$7           Extended register 2
+$8           Extended register 3
+$9           Extended register 4
+$+           Add value at pointer to register 1
+$-           Subtract value at pointer from register 1
+$*           Multiply value at pointer to register 1
+$/           Divide register 1 by pointer
+$%           Perform modulo on register 1 by value at pointer
+$&           Bitwise AND register 1 with pointer
+$|           Bitwise OR register 1 with pointer
+$^           Bitwise XOR register 1 with pointer
+$!           Bitwise NOT on register 1
+${a*b}       Multiply register a times register b
+${a/b}       Divide register a by register b
+${a+b}       Add register b to register a
+${a-b}       Subtract register b from register a
+${a%b}       Modulo division of a by b into a
+${a,b}       Copy value from register a to register b
+${a&b}       Bitwise AND register a with register b
+${a|b}       Bitwise OR register a with register b
+${a^b}       Bitwise XOR register a with register b
+${!a}        Bitwise NOT register a
+
+
+Fun Stuff:
+----------
+¢, £, ¥, or € Ascii bell (cha-ching :P)
+©, ®, or ™    Print "I'm a profiteering glutton" and ©, ®, or ™ 
+              respectively
+ßµÅ           Print "Hackers Manifesto"
+
+
+Additional Notes:
+  - Conditionals can be nested
+  - Values to be compared to can be held in registers
+    - Simply place register identifier like $1 in place of a/b
+  - Return values should be stored in register 1
+  - Function stacks are automatically cleared when the function 
+    returns
+  - Prior to including a file, you must initialize the names of
+    the functions you want from it
+    - If the included file does not define all the required 
+      functions, an error will be thrown
+  - Functions may not define new functions, however, they may 
+    initialize the function names and include other files
+    - These functions, however, will only be accessible from
+      within the scope of the function
+  - Included files, may forward the request for a function to a 
+    different file by initializing the function name and then 
+    including the file
+    - Therefore in any included file, the includes that contain 
+      required functions will be parsed first
+  - Extended registers are stored as long int
+    - The normal registers are stored as char
+  - The p0-9 will output formatted based on the register
+    - If it is a normal register, it will be printed as char
+    - If it is an extended register, it will be printed as int
+      - This is also true if it is register 5
+    - If it is 0, it will print the word NULL
+  - Function arguments should be passed in registers or the 
+     stack
