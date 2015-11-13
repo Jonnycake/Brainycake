@@ -1,7 +1,7 @@
 #####################################
 # Used to test loops and user input #
 #####################################
-
+/
 (0) holds half height
 (1) holds design character
 (2) holds fill character
@@ -11,102 +11,102 @@
 (6) holds number of design characters
 (7) used as temporary variable to copy values back and forward
 (8) used as secondary temporary variable to keep half height around after top of diamond
-
-Get user input
+/
+# Get user input
 \Please enter the half-height of the diamond: \
-,                                                Get half-height (0)
------------------------------------------------  Convert to an integer (no error checking)
->,                                               Get newline (1)
+,                                                # Get half-height (0)
+-----------------------------------------------  # Convert to an integer (no error checking)
+>,                                               # Get newline (1)
 \Please enter the design character: \
-,                                                Get design character (1)
->,                                               Get newline (2)
-[-]                                              Reset to 0 (2)
+,                                                # Get design character (1)
+>,                                               # Get newline (2)
+[-]                                              # Reset to 0 (2)
 
-Set up our space and newline
-++++++++++++++++++++++++++++++++                 Set this to space (fill character) (2)
+# Set up our space and newline
+++++++++++++++++++++++++++++++++                 # Set this to space (fill character) (2)
 >
-++++++++++                                       Set this to newline (3)
+++++++++++                                       # Set this to newline (3)
 
-Keep track of half height
-<<<                                              Back to (0)
-[->>>>+>+>>>+<<<<<<<<]                           Move it to (4) (5) and (8)
+# Keep track of half height
+<<<                                              # Back to (0)
+[->>>>+>+>>>+<<<<<<<<]                           # Move it to (4) (5) and (8)
 
-Output top of diamond
->>>>>                                            Back to 5
+# Output top of diamond
+>>>>>                                            # Back to 5
 [
-  -                                              Decrement number of rows once
-  >                                              Go to (6)
-  +                                              Increment once
+  -                                              # Decrement number of rows once
+  >                                              # Go to (6)
+  +                                              # Increment once
 
-  <<                                             Back to (4)
+  <<                                             # Back to (4)
   [
-    ->>>+<<<                                     Start copying value to 7
-    <<                                           Back to (2)
-    .                                            Output fill
-    >>                                           Back to 4
+    ->>>+<<<                                     # Start copying value to 7
+    <<                                           # Back to (2)
+    .                                            # Output fill
+    >>                                           # Back to 4
   ]
 
-  >>>                                            Back to 7
-  [-<<<+>>>]                                     Copy 7 back to 4
-  <<<                                            Back to 4
-  -                                              Decrement once
-  >>                                             Back to 6
+  >>>                                            # Back to 7
+  [-<<<+>>>]                                     # Copy 7 back to 4
+  <<<                                            # Back to 4
+  -                                              # Decrement once
+  >>                                             # Back to 6
 
   [
-    ->+<                                         Start copying 6 to 7
-    <<<<<                                        Back to 1
-    .                                            Output design
-    >>>>>                                        Back to 6
+    ->+<                                         # Start copying 6 to 7
+    <<<<<                                        # Back to 1
+    .                                            # Output design
+    >>>>>                                        # Back to 6
   ]
-  >                                              Back to 7
-  [-<+>]                                         Copy 7 back to 6
-  <                                              Back to 6
-  +                                              Increment once
-  <<<                                            Back to 3
-  .                                              Output newline
-  >>                                             Back to 5
+  >                                              # Back to 7
+  [-<+>]                                         # Copy 7 back to 6
+  <                                              # Back to 6
+  +                                              # Increment once
+  <<<                                            # Back to 3
+  .                                              # Output newline
+  >>                                             # Back to 5
 ]
 
-Output bottom of diamond
->>>                                              Back to 8
-[-<<<+>>>]                                       Copy to 5 
-<<<<                                             Back to 4
-++                                               Increment twice
->                                                Back to 5
--                                                Decrement once since we want one less row
->                                                Back to 6
---                                               Decrement twice since we want two less fill characters
-<                                                Back to 5
+# Output bottom of diamond
+>>>                                              # Back to 8
+[-<<<+>>>]                                       # Copy to 5 
+<<<<                                             # Back to 4
+++                                               # Increment twice
+>                                                # Back to 5
+-                                                # Decrement once since we want one less row
+>                                                # Back to 6
+--                                               # Decrement twice since we want two less fill characters
+<                                                # Back to 5
 [
-  -                                              Decrement number of rows once
-  >                                              Go to (6)
-  -                                              Decrement once
+  -                                              # Decrement number of rows once
+  >                                              # Go to (6)
+  -                                              # Decrement once
 
-  <<                                             Back to (4)
+  <<                                             # Back to (4)
   [
-    ->>>+<<<                                     Start copying value to 7
-    <<                                           Back to (2)
-    .                                            Output fill
-    >>                                           Back to 4
+    ->>>+<<<                                     # Start copying value to 7
+    <<                                           # Back to (2)
+    .                                            # Output fill
+    >>                                           # Back to 4
   ]
 
-  >>>                                            Back to 7
-  [-<<<+>>>]                                     Copy 7 back to 4
-  <<<                                            Back to 4
-  +                                              Increment once
-  >>                                             Back to 6
+  >>>                                            # Back to 7
+  [-<<<+>>>]                                     # Copy 7 back to 4
+  <<<                                            # Back to 4
+  +                                              # Increment once
+  >>                                             # Back to 6
 
   [
-    ->+<                                         Start copying 6 to 7
-    <<<<<                                        Back to 1
-    .                                            Output design
-    >>>>>                                        Back to 6
+    ->+<                                         # Start copying 6 to 7
+    <<<<<                                        # Back to 1
+    .                                            # Output design
+    >>>>>                                        # Back to 6
   ]
-  >                                              Back to 7
-  [-<+>]                                         Copy 7 back to 6
-  <                                              Back to 6
-  -                                              Decrement once
-  <<<                                            Back to 3
-  .                                              Output newline
-  >>                                             Back to 5
+  >                                              # Back to 7
+  [-<+>]                                         # Copy 7 back to 6
+  <                                              # Back to 6
+  -                                              # Decrement once
+  <<<                                            # Back to 3
+  .                                              # Output newline
+  >>                                             # Back to 5
 ]
