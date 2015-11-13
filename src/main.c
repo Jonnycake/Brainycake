@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 		f = realloc(f, 1 * sizeof(FILE*));
 
 		
-		f[0] = fopen(mainfile, "r");
+		f[0] = fopen(mainfile, "rb");
 		while( !error
 		    && (c = fgetc(f[0])) != EOF
 		) {
@@ -145,9 +145,7 @@ int main(int argc, char** argv)
 					break;
 				case '[':
 					if( a[p] ) {
-						// Set loop position for current loop to position + 1
-						//  (so we don't get into an infinite loop)
-						loop_positions[numloops++] = ftell(f[0]) + 1;
+						loop_positions[numloops++] = ftell(f[0]);
 					} else {
 						int lastloop = numloops;
 						for( ; c != EOF && numloops != lastloop; c = fgetc(f[0]) ) {
