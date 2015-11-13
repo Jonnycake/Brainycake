@@ -84,8 +84,8 @@ int main(int argc, char** argv)
 				printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, p, a[p], a[p]);
 			}
 
-			// @todo Refactor to clean up code a bit
-			// @todo Add extensions
+			// @todo Refactoring this is required for being able to process include files
+			/        without significant code duplication.
 			switch(c)
 			{
 				// Traditional brainfuck
