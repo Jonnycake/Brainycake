@@ -66,6 +66,10 @@ int main(int argc, char** argv)
 	char error = 0;
 	char debug = 0;
 
+
+	int loop_positions[MAX_LOOPS] = {0};
+	char numloops = 0;
+
 	int p = 0;
 
 	if(argc == 1) {
@@ -107,7 +111,7 @@ int main(int argc, char** argv)
 			}
 
 			// @todo Refactoring this is required for being able to process include files
-			/        without significant code duplication.
+			//       without significant code duplication.
 			switch(c)
 			{
 				// Traditional brainfuck
@@ -140,8 +144,31 @@ int main(int argc, char** argv)
 					a[p]--;
 					break;
 				case '[':
+					if( a[p] ) {
+						// Set loop position for current loop to position + 1
+						//  (so we don't get into an infinite loop)
+						loop_positions[numloops++] = ftell(f[0]) + 1;
+					} else {
+						int lastloop = numloops;
+						for( ; c != EOF && numloops != lastloop; c = fgetc(f[0]) ) {
+							if( c == ']' ) {
+								numloops--;
+							} else if ( c == '[' ) {
+								numloops++;
+							}
+						}
+
+						if( c == EOF ) {
+							printf("Syntax error: No matching ']' for '['!");
+						}
+					}
 					break;
 				case ']':
+					if( a[p] ) {
+						fseek(f[0], loop_positions[numloops - 1], SEEK_SET);
+					} else {
+						loop_positions[--numloops] = 0;
+					}
 					break;
 
 				// Comments
@@ -152,6 +179,7 @@ int main(int argc, char** argv)
 					for( c = fgetc(f[0]); c != EOF && c!= '/'; c = fgetc(f[0]) ) ;
 					if( c == EOF ) {
 						printf("Syntax error: No matching '/'!\n");
+						error = 1;
 					}
 					break;
 
@@ -162,6 +190,7 @@ int main(int argc, char** argv)
 					}
 					if( c == EOF ) {
 						printf("Syntax error: No matching '\\'!\n");
+						error = 1;
 					}
 					break;
 
@@ -187,5 +216,5 @@ int main(int argc, char** argv)
 		free(a);
 		free(f);
 	}
-	return 0;
+	return error;
 }
