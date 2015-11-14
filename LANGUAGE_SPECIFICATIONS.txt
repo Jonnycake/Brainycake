@@ -22,7 +22,7 @@ _            Go back to pointer 0
              (contextual)
 ²            Square value at extended register 1
 ³            Cube value at extended register 1
-§            Switch value at pointer with value in register 1
+s            Switch value at pointer with value in register 1
 c            Clear screen (nasty system call to cls (windows) or 
              clear (linux))
 
