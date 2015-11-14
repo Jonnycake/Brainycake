@@ -1,0 +1,6 @@
+#########################################
+# Print the first 7 digits of fibonacci #
+#########################################
+
+++++++++++$2^                # Put a newline character in register 2
++dp2$1>+++++++[<sdp2$+>-]    # Generate and output fibonacci sequence

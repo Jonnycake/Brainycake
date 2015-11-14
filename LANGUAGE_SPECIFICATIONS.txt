@@ -145,7 +145,7 @@ Additional Notes:
   - The p0-9 will output formatted based on the register
     - If it is a normal register, it will be printed as char
     - If it is an extended register, it will be printed as int
-      - This is also true if it is register 5
+    - If it is $5 (the stack pointer), it will be printed as hex
     - If it is 0, it will print the word NULL
   - Function arguments should be passed in registers or the 
      stack

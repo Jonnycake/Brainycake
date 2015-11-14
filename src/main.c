@@ -34,7 +34,9 @@
  * @todo Add/implement functions
  * @todo Add/implement fun stuff
  * @todo Optimizations!
- *           - Loops definitely need to be optimized, I think most of the performance issues arise from file io
+ *     - Loops definitely need to be optimized, I think most of the performance issues arise from file io
+ *       - Files should be read in at the beginning
+ *     - When we read in files, we should store without comments/whitespace to preserve memory
  */
 
 // Memory settings
@@ -53,6 +55,8 @@
 #define MODE_FUNC_INIT  6
 #define MODE_FUNC_DEF   7
 #define MODE_INCLUDE    8
+#define MODE_REG_MANIP  9
+#define MODE_COND_EVAL  10
 
 int main(int argc, char** argv)
 {
@@ -72,6 +76,8 @@ int main(int argc, char** argv)
 
 	int loop_positions[MAX_LOOPS] = {0};
 	char numloops = 0;
+
+	char mode = MODE_EXEC;
 
 	int p = 0;
 
@@ -172,6 +178,14 @@ int main(int argc, char** argv)
 					}
 					break;
 
+				// Shortcuts
+				case '_':
+					p = 0;
+					break;
+				case '^':
+					a[p] = 0;
+					break;
+
 				// Comments
 				case '#':
 					for( ; c != EOF && c != '\n'; c = fgetc(f[0]) ) ;
@@ -220,11 +234,78 @@ int main(int argc, char** argv)
 							case '9':
 								extregisters[c - 53] = a[p];
 								break;
+							case '{':
+								mode = MODE_REG_MANIP;
+								break;
+							case '+':
+								registers[1] += a[p];
+								break;
+							case '-':
+								registers[1] -= a[p];
+								break;
+							case '/':
+								registers[1] /= a[p];
+								break;
+							case '*':
+								registers[1] *= a[p];
+								break;
+							case '%':
+								registers[1] %= a[p];
+								break;
+							case '&':
+								registers[1] &= a[p];
+								break;
+							case '|':
+								registers[1] |= a[p];
+								break;
+							case '^':
+								registers[1] ^= a[p];
+								break;
+							case '!':
+								registers[1] = ~registers[1];
+								break;
+							default:
+								printf("Syntax error: Invalid register operation '%c'.\n", c);
+								error = 1;
+								break;
 						}
 					}
 					break;
 				case 's':
-					a[p] = registers[1];
+					a[p] ^= registers[1];
+					registers[1] ^= a[p];
+					a[p] ^= registers[1];
+					break;
+				case 'p':
+					c = fgetc(f[0]);
+					if( c == EOF ) {
+						printf("Error: Scanned to end of file when attempting to identify register to print.");
+					} else {
+						switch(c)
+						{
+							case '0':
+								printf("NULL");
+								break;
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+								printf("%c", registers[c - 48]);
+								break;
+							case '5':
+								printf("%x", extregisters[0]);
+								break;
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+								printf("%d", extregisters[c - 53]);
+								break;
+							default:
+								printf("Error: Unknown register '%c'.", c);
+								break;
+						}
+					}
 					break;
 
 				// Debugging
@@ -240,7 +321,6 @@ int main(int argc, char** argv)
 				case '?':
 				case '@':
 				case '!':
-				case 'p':
 					break;
 			}
 
