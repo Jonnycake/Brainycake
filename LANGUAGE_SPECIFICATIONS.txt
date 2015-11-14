@@ -65,9 +65,11 @@ Jumps:
 ------
 j{a}       Jump pointer to a
 j{$a}      Jump pointer to value in register a
+j{}        Absolute jump pointer to value in pointer
 j[a]       Relative jump a instructions (negative for backward 
            jump)
-j[]        Jump pointer to value in pointer
+j[$a]      Relative jump pointer to value in register a
+j[]        Relative jump pointer to value in pointer
 
 Stack:
 ------
@@ -149,3 +151,8 @@ Additional Notes:
     - If it is 0, it will print the word NULL
   - Function arguments should be passed in registers or the 
      stack
+  - Programs will be read in and stored in memory without comments or whitespaces
+    - This is important to keep in mind when use relative or absolute jumps
+  - When jumping, no check is performed to find out if we jumped into/out of a loop
+    or into a conditional
+    - This can have unintended consequences

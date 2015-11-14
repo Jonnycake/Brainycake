@@ -46,17 +46,26 @@
 #define STACK_WIDTH       4         // Number of bytes per level of the stack
 #define MAX_LOOPS         32        // Maximum number of nested loops
 
+// Error codes
+#define ERROR_SYNTAX  1 // Syntax errors
+#define ERROR_OOB     2 // Out of bounds - trying to push onto full stack, etc.
+#define ERROR_RO      3 // Read-only - Trying to write to $0
+#define ERROR_UNDEF   4 // Undefined function
+#define ERROR_PROG    5 // Program set error condition
+#define ERROR_UNKNOWN 6 // All other error conditions
+
 // Parsing modes
-#define MODE_JUMP       1
-#define MODE_COMMENT_SL 2
-#define MODE_COMMENT_ML 3
-#define MODE_EXEC       4
-#define MODE_OUTPUT     5
-#define MODE_FUNC_INIT  6
-#define MODE_FUNC_DEF   7
-#define MODE_INCLUDE    8
-#define MODE_REG_MANIP  9
-#define MODE_COND_EVAL  10
+#define MODE_JUMP_ABS   1
+#define MODE_JUMP_REL   2
+#define MODE_COMMENT_SL 3
+#define MODE_COMMENT_ML 4
+#define MODE_EXEC       5
+#define MODE_OUTPUT     6
+#define MODE_FUNC_INIT  7
+#define MODE_FUNC_DEF   8
+#define MODE_INCLUDE    9
+#define MODE_REG_MANIP  10
+#define MODE_COND_EVAL  11
 
 int main(int argc, char** argv)
 {
@@ -66,6 +75,7 @@ int main(int argc, char** argv)
 	char c;
 	char* mainfile;
 
+	char quiet = 0;
 	char verbose = 0;
 	char superverbose = 0;
 	char error = 0;
@@ -102,6 +112,8 @@ int main(int argc, char** argv)
 					verbose = 1;
 				} else if(!strcmp(argv[x], "-d")) {
 					debug = 1;
+				} else if(!strcmp(argv[x], "-q")) {
+					quiet = 1;
 				} else {
 					printf("%s\n", argv[x]);
 				}
@@ -185,7 +197,38 @@ int main(int argc, char** argv)
 				case '^':
 					a[p] = 0;
 					break;
-
+				case '|':
+					{
+						char v[4] = {0};
+						int count = 0;
+						for( c = fgetc(f[0]);
+						     c != EOF
+						     && c != '|'
+						     && count < 3;
+						     c = fgetc(f[0]), count++
+						) {
+							if(c >= 48 && c < 58) {
+								v[count] = c;
+							} else {
+								error = ERROR_UNKNOWN;
+								break;
+							}
+						} 
+						if( c == EOF ) {
+							printf("Syntax Error: Got EOF when attempting to read value for addition.");
+							error = ERROR_SYNTAX;
+						} else if(c == '|') {
+							count = atoi(v);
+							if(count > 255 && !quiet) {
+								printf("Warning: Number is greater than 255, there may be unexpected results.\n");
+							}
+							a[p] += atoi(v);
+						} else {
+							printf("Error: Requested number is out of bounds.\n");
+						}
+						
+					}
+					break;
 				// Comments
 				case '#':
 					for( ; c != EOF && c != '\n'; c = fgetc(f[0]) ) ;
@@ -318,8 +361,10 @@ int main(int argc, char** argv)
 				case 'v':
 					verbose = (verbose) ? 0 : 1;
 					break;
-				case '?':
 				case '@':
+					error = ERROR_PROG;
+					break;
+				case '?':
 				case '!':
 					break;
 			}

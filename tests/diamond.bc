@@ -20,12 +20,12 @@
 \Please enter the design character: \
 ,                                                # Get design character (1)
 >,                                               # Get newline (2)
-[-]                                              # Reset to 0 (2)
+^                                                # Reset to 0 (2)
 
 # Set up our space and newline
-++++++++++++++++++++++++++++++++                 # Set this to space (fill character) (2)
+|32|                                             # Set this to space (fill character) (2)
 >
-++++++++++                                       # Set this to newline (3)
+|10|                                             # Set this to newline (3)
 
 # Keep track of half height
 <<<                                              # Back to (0)
