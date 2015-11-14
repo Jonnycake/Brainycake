@@ -46,7 +46,7 @@ p0-9         Print value in specified register
 Functions:
 ----------
 (name)        Initialize function name
-(name):code:  Define function
+(name:code)   Define function
 `name`        Call function defined by name
 i{somefile}   Include somefile (for externally defined 
               functions)
