@@ -25,7 +25,6 @@
 #include <stdlib.h>
 
 /**
- * @todo Implement loops
  * @todo Add/implement debugging instructions
  * @todo Add/implement registers
  * @todo Add/implement stack
@@ -34,6 +33,8 @@
  * @todo Add/implement shortcuts
  * @todo Add/implement functions
  * @todo Add/implement fun stuff
+ * @todo Optimizations!
+ *           - Loops definitely need to be optimized, I think most of the performance issues arise from file io
  */
 
 // Memory settings
@@ -66,6 +67,8 @@ int main(int argc, char** argv)
 	char error = 0;
 	char debug = 0;
 
+	char registers[5] = {0};
+	int extregisters[5] = {0};
 
 	int loop_positions[MAX_LOOPS] = {0};
 	char numloops = 0;
@@ -192,9 +195,45 @@ int main(int argc, char** argv)
 					}
 					break;
 
+				// Registers
+				case '$':
+					c = fgetc(f[0]);
+					if( c == EOF ) {
+						printf("Error: Scanned to end of file when attempting to identify a register.");
+					} else {
+						switch(c)
+						{
+							case '0':
+								printf("Error: Attempted to write to read-only register ($0).");
+								error = 1;
+								break;
+							case '1':
+							case '2':
+							case '3':
+							case '4':
+								registers[c - 48] = a[p];
+								break;
+							case '5':
+							case '6':
+							case '7':
+							case '8':
+							case '9':
+								extregisters[c - 53] = a[p];
+								break;
+						}
+					}
+					break;
+				case 's':
+					a[p] = registers[1];
+					break;
+
 				// Debugging
 				case 'h':
+					printf("0x%x", (a[p] >= 0) ? a[p] : 256 + a[p]);
+					break;
 				case 'd':
+					printf("%d", (a[p] >= 0) ? a[p] : 256 + a[p]);
+					break;
 				case 'v':
 					verbose = (verbose) ? 0 : 1;
 					break;
