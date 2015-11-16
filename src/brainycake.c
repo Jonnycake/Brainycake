@@ -103,7 +103,7 @@ bc_execute(char* code)
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT);
     mode = MODE_EXEC;
-    for(codepos; codepos <= codelen; c = code[codepos++]) {
+    for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
             printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, p, a[p], a[p]);
         }
@@ -354,10 +354,7 @@ bc_jump(char* code, int* codepos)
 void
 bc_push(Stack* s, char* a, int p)
 {
-    int t = 0;
-    int i = p;
     int v = 0;
-    char c;
     int x = sizeof(int) - 1;
     for( ; x >= 0 ; x-- ) {
         v |= a[p++] << (x * 8);

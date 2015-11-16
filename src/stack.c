@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include <stack.h>
+
 void Stack_push(Stack* s, int val)
 {
     *(s->sp) = val;

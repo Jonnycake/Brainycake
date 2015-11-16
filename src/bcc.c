@@ -95,5 +95,7 @@ int main(int argc, char** argv)
         free(fullcommand);
         free(code);
     }
+
+    return 0;
 }
 
