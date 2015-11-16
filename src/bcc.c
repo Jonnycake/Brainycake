@@ -6,18 +6,23 @@
 int main(int argc, char** argv)
 {
     char* command = "gcc -o a.out ";
-    char* header = "int main() \n{\nchar a[256] = {0}; int p = 0;";
+    char* header = "#include <stdio.h>\nint main() \n{\nchar a[256] = {0}; int p = 0;";
     char* footer = "\n}";
     char** translations;
-    translations = calloc(sizeof(char*), 8);
+    translations = calloc(sizeof(char*), 13);
     translations[0] = "p++;";
     translations[1] = "p--;";
     translations[2] = "a[p]++;";
     translations[3] = "a[p]--;";
-    translations[4] = "write(1, &a[p], 1);";
-    translations[5] = "read(stdin, &a[p], 1);";
+    translations[4] = "putchar(a[p]);";
+    translations[5] = "a[p] = getchar();";
     translations[6] = "while(a[p]) {";
     translations[7] = "}";
+    translations[8] = "a[p] += %d;";
+    translations[9] = "a[p] = 0;";
+    translations[10] = "p = 0;";
+    translations[11] = "printf(\"%d\", a[p]);";
+    translations[12] = "printf(\"0x%x\", a[p]);";
     FILE* f;
     char* mainfile;
     char* code;
@@ -34,7 +39,7 @@ int main(int argc, char** argv)
         strcat(fullcommand, newfile);
         bc_preprocess(mainfile, &code);
         bc_codelen = strlen(code);
-        c_code = calloc(sizeof(char), bc_codelen * 13 + strlen(header) + strlen(footer));
+        c_code = calloc(sizeof(char), bc_codelen * 23 + strlen(header) + strlen(footer));
         strcat(c_code, header);
         for(x = 0; x < bc_codelen ; x++) {
             top = strlen(c_code);
@@ -64,15 +69,31 @@ int main(int argc, char** argv)
                 case ']':
                     strcat(&c_code[top], translations[7]);
                     break;
+                case '|':
+                    // @todo add extra logic for bringing integer into code
+                    break;
+                case '^':
+                    strcat(&c_code[top], translations[9]);
+                    break;
+                case '_':
+                    strcat(&c_code[top], translations[10]);
+                    break;
+                case 'd':
+                    strcat(&c_code[top], translations[11]);
+                    break;
+                case 'h':
+                    strcat(&c_code[top], translations[12]);
+                    break;
             }
         }
         strcat(c_code, footer);
         f = fopen(newfile, "w+");
         fwrite(c_code, 1, strlen(c_code), f);
         fclose(f);
-        free(c_code);
-        printf("%s %s\n", fullcommand, newfile);
         system(fullcommand);
+        free(c_code);
+        free(fullcommand);
+        free(code);
     }
 }
 
