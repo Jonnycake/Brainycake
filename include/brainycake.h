@@ -1,4 +1,5 @@
 #ifndef BRAINYCAKE
+    #include <stack.h>
     // Don't load this again
     #define BRAINYCAKE
 
@@ -60,4 +61,10 @@
      * jump mode (relative or absolute)
      */
     void bc_jump(char* code, int* codepos);
+
+    /**
+     * 
+     */
+    void bc_push(Stack* s, char* a, int p);
+    void bc_pop(Stack* s, char* a, int p);
 #endif

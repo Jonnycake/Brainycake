@@ -76,11 +76,13 @@ bc_preprocess(char* mainfile, char** code)
                 }
         }
     }
+    return error;
 }
 
 int
 bc_include(char* file, char** functions, char** code, int cursize)
 {
+    FILE* f;
 }
 
 int
@@ -98,6 +100,8 @@ bc_execute(char* code)
     int curCellCount = INIT_CELL_COUNT;
     int p = 0;
     int error = 0;
+    Stack s;
+    Stack_construct(&s, MAX_STACK_HEIGHT);
     mode = MODE_EXEC;
     for(codepos; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
@@ -305,6 +309,15 @@ bc_execute(char* code)
                         }
                         break;
 
+                    // Stack
+                    case '"':
+                        bc_push(&s, a, p);
+                        break;
+
+                    case '\'':
+                        bc_pop(&s, a, p);
+                        break;
+
                     // Debugging
                     case 'h':
                         printf("0x%x", (a[p] >= 0) ? a[p] : 256 + a[p]);
@@ -328,10 +341,37 @@ bc_execute(char* code)
             printf("\n\nNew Stats: %d - %c - %d\n\n", p, a[p], a[p]);
         }
     }
+    Stack_destroy(&s);
+
     return error;
 }
 
 void
 bc_jump(char* code, int* codepos)
 {
+}
+
+void
+bc_push(Stack* s, char* a, int p)
+{
+    int t = 0;
+    int i = p;
+    int v = 0;
+    char c;
+    int x = sizeof(int) - 1;
+    for( ; x >= 0 ; x-- ) {
+        v |= a[p++] << (x * 8);
+    }
+    s->push(s, v);
+}
+
+void bc_pop(Stack* s, char* a, int p)
+{
+    int i = p;
+    int x = sizeof(int) - 1;
+    int v;
+    s->pop(s, &v);
+    for( ; x >= 0 ; x-- ) {
+        a[i++] = (v >> (x * 8)) & 0xFF;
+    }
 }
