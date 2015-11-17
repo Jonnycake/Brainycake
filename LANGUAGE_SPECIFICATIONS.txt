@@ -171,3 +171,9 @@ Additional Notes:
     following standard conventions (function prologue and epilogue)
     - These are $s and $b respectively
     - These must be reset upon return
+  - When function calls are made, the function being executed gets
+    its own version of the tape to avoid any unintended side-effects
+    from the function
+    - If the function needs cells in the tape to be set up by the
+      caller, the caller will push those setups onto the stack and
+      the function will pop them off in the correct location

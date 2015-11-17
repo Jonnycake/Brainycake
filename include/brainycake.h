@@ -20,19 +20,27 @@
     #define ERROR_UNKNOWN 6 // All other error conditions
 
     // Parsing modes
-    #define MODE_START      0
-    #define MODE_PREPROCESS 1
-    #define MODE_JUMP_ABS   2
-    #define MODE_JUMP_REL   3
-    #define MODE_COMMENT_SL 4
-    #define MODE_COMMENT_ML 5
-    #define MODE_EXEC       6
-    #define MODE_OUTPUT     7
-    #define MODE_FUNC_INIT  8
-    #define MODE_FUNC_DEF   9
-    #define MODE_INCLUDE    10
-    #define MODE_REG_MANIP  11
-    #define MODE_COND_EVAL  12
+    #define MODE_START          0
+    #define MODE_PREPROCESS     1
+    #define MODE_JUMP_ABS       2
+    #define MODE_JUMP_REL       3
+    #define MODE_COMMENT_SL     4
+    #define MODE_COMMENT_ML     5
+    #define MODE_EXEC           6
+    #define MODE_OUTPUT         7
+    #define MODE_FUNC_INIT      8
+    #define MODE_FUNC_DEF       9
+    #define MODE_INCLUDE        10
+    #define MODE_REG_MANIP      11
+    #define MODE_COND_EVAL      12
+    #define MODE_REG_MANIP_DONE 13
+    #define MODE_REG_MANIP_NOT  14
+    #define MODE_REG_MANIP_ADD  15
+    #define MODE_REG_MANIP_SUB  16
+    #define MODE_REG_MANIP_MUL  17
+    #define MODE_REG_MANIP_DIV  18
+    #define MODE_REG_MANIP_MOD  19
+    #define MODE_REG_MANIP_SET  20
 
     /**
      * bc_preprocess will take in mainfile, look for syntax errors,

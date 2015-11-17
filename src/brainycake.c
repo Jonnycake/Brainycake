@@ -116,6 +116,64 @@ bc_execute(char* code)
                     putchar(c);
                 }
                 break;
+            case MODE_REG_MANIP_ADD:
+            case MODE_REG_MANIP_SUB:
+            case MODE_REG_MANIP_MOD:
+            case MODE_REG_MANIP_MUL:
+            case MODE_REG_MANIP_DIV:
+            case MODE_REG_MANIP_SET:
+            case MODE_REG_MANIP_NOT:
+            case MODE_REG_MANIP_DONE:
+            case MODE_REG_MANIP:
+                switch(c)
+                {
+                    case '!':
+                        if(mode == MODE_REG_MANIP_DONE ) {
+                            printf("Syntax Error: Registry manipulation is already complete!\n");
+                            error = ERROR_SYNTAX;
+                        } else if( mode == MODE_REG_MANIP_NOT ) {
+                            printf("Syntax Error: Already specified not!\n");
+                            error = ERROR_SYNTAX;
+                        } else {
+                            mode = MODE_REG_MANIP_NOT;
+                        }
+                        break;
+                    case '0':
+                        printf("Error: Can not manipulate a read only register!\n");
+                        error = ERROR_OOB;
+                        break;
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                        if(mode == MODE_REG_MANIP_DONE) {
+                            printf("Syntax Error: Registry manipulation is already complete!\n");
+                            error = ERROR_SYNTAX;
+                        } else if( mode == MODE_REG_MANIP_NOT ) {
+                            registers[c - 48] = ~registers[c - 48];
+                        }
+                        break;
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        if(mode == MODE_REG_MANIP_DONE) {
+                            printf("Syntax Error: Registry manipulation is already complete!\n");
+                            error = ERROR_SYNTAX;
+                        } else if( mode == MODE_REG_MANIP_NOT ) {
+                            extregisters[c - 53] = ~extregisters[c - 53];
+                        }
+                        break;
+                    case '}':
+                       mode = MODE_EXEC;
+                       break;
+                    default:
+                       printf("Syntax Error: Invalid registry manipulation function.\n");
+                       error = ERROR_SYNTAX;
+                       break;
+                }
+                break;
             case MODE_EXEC:
                 switch(c)
                 {
