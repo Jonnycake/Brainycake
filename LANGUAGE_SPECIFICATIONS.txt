@@ -26,6 +26,7 @@ s            Switch value at pointer with value in register 1
 c            Clear screen (nasty system call to cls (windows) or 
              clear (linux))
 
+
 Comments:
 ---------
 # comment    Single line comment
@@ -87,12 +88,15 @@ $1           Put value at pointer into register 1
 $2           Put value at pointer into register 2
 $3           Put value at pointer into register 3
 $4           Put value at pointer into register 4
-$5           Put value at pointer into register 5 (stack 
-             pointer)
-$6           Extended register 1
-$7           Extended register 2
-$8           Extended register 3
-$9           Extended register 4
+$5           Put value at pointer into extended register 1
+$6           Put value at pointer into extended register 2
+$7           Put value at pointer into extended register 3
+$8           Put value at pointer into extended register 4
+$9           Put value at pointer into extended register 5
+$b           Put value at pointer into base pointer (not
+             general purpose)
+$s           Put value at pointer into stack pointer (not
+             general purpose
 $+           Add value at pointer to register 1
 $-           Subtract value at pointer from register 1
 $*           Multiply value at pointer to register 1
@@ -102,6 +106,9 @@ $&           Bitwise AND register 1 with pointer
 $|           Bitwise OR register 1 with pointer
 $^           Bitwise XOR register 1 with pointer
 $!           Bitwise NOT on register 1
+$p{a}        Associate register a with the pointer (copies
+             current value of pointer to register a, any
+             changes to a are made to p)
 ${a*b}       Multiply register a times register b
 ${a/b}       Divide register a by register b
 ${a+b}       Add register b to register a
@@ -147,12 +154,20 @@ Additional Notes:
   - The p0-9 will output formatted based on the register
     - If it is a normal register, it will be printed as char
     - If it is an extended register, it will be printed as int
-    - If it is $5 (the stack pointer), it will be printed as hex
     - If it is 0, it will print the word NULL
   - Function arguments should be passed in registers or the 
      stack
-  - Programs will be read in and stored in memory without comments or whitespaces
-    - This is important to keep in mind when use relative or absolute jumps
-  - When jumping, no check is performed to find out if we jumped into/out of a loop
-    or into a conditional
+  - Programs will be read in and stored in memory without comments 
+    or whitespaces
+    - This is important to keep in mind when use relative or absolute
+      jumps
+  - When jumping, no check is performed to find out if we jumped
+    into/out of a loop or into a conditional
     - This can have unintended consequences
+  - When pushing onto the stack, the push will translate the next 4
+    cells into an integer
+    - Likewise when popping they will be converting back to 4 chars
+  - When using the stack, you must set s->sp and s->bp appropriately
+    following standard conventions (function prologue and epilogue)
+    - These are $s and $b respectively
+    - These must be reset upon return
