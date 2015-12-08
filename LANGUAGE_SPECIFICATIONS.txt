@@ -25,7 +25,8 @@ _            Go back to pointer 0
 s            Switch value at pointer with value in register 1
 c            Clear screen (nasty system call to cls (windows) or 
              clear (linux))
-
+*            Set value at pointer to random between 0-255
+~            Perform bitwise not on the value at the pointer
 
 Comments:
 ---------
@@ -39,7 +40,6 @@ d            Output decimal equivilent of value at pointer
 v            Toggle verbose mode
 ?            Breakpoint (with debug output)
 @            Signal error condition
-~            Set value at pointer to random between 0-255
 !            Toggle step by step mode (with debug output if
              running in verbose mode)
 p0-9         Print value in specified register
@@ -96,7 +96,10 @@ $9           Put value at pointer into extended register 5
 $b           Put value at pointer into base pointer (not
              general purpose)
 $s           Put value at pointer into stack pointer (not
-             general purpose
+             general purpose)
+$i           Put value at pointer into instruction pointer
+             (not general purpose) - essentially implements
+             function return
 $+           Add value at pointer to register 1
 $-           Subtract value at pointer from register 1
 $*           Multiply value at pointer to register 1
@@ -134,6 +137,10 @@ Additional Notes:
   - Values to be compared to can be held in registers
     - Simply place register identifier like $1 in place of a/b
   - Return values should be stored in register 1
+    - These may include an address to a point on the stack
+      - If this is the case, the caller should temporarily move
+        the stack pointer to that location, it should then pop
+        the value off of the stack
   - Function stacks are automatically cleared when the function 
     returns
   - Prior to including a file, you must initialize the names of
@@ -155,8 +162,7 @@ Additional Notes:
     - If it is a normal register, it will be printed as char
     - If it is an extended register, it will be printed as int
     - If it is 0, it will print the word NULL
-  - Function arguments should be passed in registers or the 
-     stack
+  - Function arguments should be passed on the stack
   - Programs will be read in and stored in memory without comments 
     or whitespaces
     - This is important to keep in mind when use relative or absolute
@@ -177,3 +183,47 @@ Additional Notes:
     - If the function needs cells in the tape to be set up by the
       caller, the caller will push those setups onto the stack and
       the function will pop them off in the correct location
+  - Brainycake code will be loaded up in the beginning onto the stack
+    - We will follow a similar functionality of CPUs (with instruction
+      pointer)
+    - Doing this will allow us to alter code as it's being executed
+    - It will also allow us to evaluate code on the fly
+  - The code loaded on the stack will be started at the very bottom of
+    the stack (cell 0)
+    - The code will be translated to integer for storage
+    - The cell it stops at will be defined by a limit on the length of
+      the text section
+    - The stack will also be of a fixed size (unless otherwise defined
+      by a setting which may or may not be implemented)
+  - The stack will provide no access protection (for rwx, over/under-
+    flows, or function scope)
+    - This will allow for passing "variables" by reference
+  - Registers should be preserved by the callee (besides $i)
+    - $i should be upated automatically as a result of jumps, function
+      calls, and returns
+  - Garbage collection to avoid memory leaks will be done automatical-
+    ly, however may not be guaranteed to work if an over/under-flow
+    occurs
+  - Upon the first successful interpretation of a .bc file, a .bcb
+    file will be generated containing a saved state of the stack
+    and registers to be loaded by bcinterpreter
+    - This format is basically going to be bytecode, effectively
+      cacheing the starting execution state allowing for quicker
+      interpretation on the next run
+  - The brainycake compiler (bcc) will first compile into C code
+    - The C code will utilize the library built for the interpreter
+      to make it easier to generate actual code
+    - NOTE: At some point I may update this to compile directly to
+      assembly, however I feel that it may be best to leave the C
+      intermediate to take advantage of their compiler optimizations.
+  - POTENTIAL ENHANCEMENT: Allow for extensions to be added at runtime
+    - Extensions could be made of .bcb files containing a variety of
+      functions
+  - The tape will be made up of signed chars (this is to allow for
+    easily looping through all characters in the ASCII charset)
+  - A function backtrace will be kept throughout execution (to allow
+    for easy debugging)
+    - This backtrace will be kept in a reserved memory location at
+      the very top of the stack
+    - The backtrace will be of a fixed maximum length represented by
+      the allowed number of nested function calls

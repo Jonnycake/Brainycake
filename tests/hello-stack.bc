@@ -1,0 +1,10 @@
+"      # Push nulls
+|104|>|101|>|108|>|108|>|111|>|32|>|119|>|111|>|114|>|108|>|100|>|10|
+<<<"   # Push 'rld\n'
+<<<<"  # Push 'o wo'
+<<<<"  # Push 'hell'
+[^>]   # Reset everything to 0
+_      # Back to 0
+
+# Print function
+'>>>[>'>>>]_[.>]

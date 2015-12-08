@@ -1,27 +1,33 @@
 #include <stdlib.h>
 #include <stack.h>
 
-void Stack_push(Stack* s, int val)
+void Stack_push(void* s, int val)
 {
-    *(s->sp) = val;
-    s->sp++;
+    Stack* this = (Stack*) s;
+    *(this->sp) = val;
+    this->sp++;
 }
 
-void Stack_pop(Stack* s, int* tgt)
+void Stack_pop(void* s, int* tgt)
 {
-    s->sp--;
-    *tgt = *(s->sp);
-    *(s->sp) = 0;
+    Stack* this = (Stack*) s;
+    this->sp--;
+    *tgt = *(this->sp);
+    *(this->sp) = 0;
 }
-void Stack_construct(Stack* s, int max_height)
+void Stack_construct(void* s, int max_height)
 {
-    s->push = Stack_push;
-    s->pop = Stack_pop;
-    s->s = calloc(sizeof(int), max_height);
-    s->sp = s->s;
-    s->bp = s->s;
+    Stack* this = (Stack*) s;
+    this->push = Stack_push;
+    this->pop = Stack_pop;
+    this->s = calloc(sizeof(int), max_height);
+    this->sp = this->s;
+    this->bp = this->s;
+    this->construct = Stack_construct;
+    this->destroy = Stack_destroy;
 }
-void Stack_destroy(Stack* s)
+void Stack_destroy(void* s)
 {
-    free(s->s);
+    Stack* this = (Stack*) s;
+    free(this->s);
 }

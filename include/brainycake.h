@@ -1,7 +1,9 @@
 #ifndef BRAINYCAKE
+    #include <bcerrors.h>
     #include <stack.h>
+    #include <registry.h>
     // Don't load this again
-    #define BRAINYCAKE
+    #define BRAINYCAKE 1
 
     // Memory settings
     #define INIT_CELL_COUNT   64        // Number of cells to initalize for basic array
@@ -10,14 +12,6 @@
     #define STACK_WIDTH       4         // Number of bytes per level of the stack
     #define MAX_LOOPS         32        // Maximum number of nested loops
     #define MAX_FILENAME      255       // Maximum length of a filename
-
-    // Error codes
-    #define ERROR_SYNTAX  1 // Syntax errors
-    #define ERROR_OOB     2 // Out of bounds - trying to push onto full stack, etc.
-    #define ERROR_RO      3 // Read-only - Trying to write to $0
-    #define ERROR_UNDEF   4 // Undefined function
-    #define ERROR_PROG    5 // Program set error condition
-    #define ERROR_UNKNOWN 6 // All other error conditions
 
     // Parsing modes
     #define MODE_START          0
@@ -71,8 +65,13 @@
     void bc_jump(char* code, int* codepos);
 
     /**
-     * 
+     * Brainycake Stack functions
      */
     void bc_push(Stack* s, char* a, int p);
     void bc_pop(Stack* s, char* a, int p);
+
+    /**
+     * Brainycake Registry Manipulation
+     */
+     int bc_reg_manip(Registry* r, char* manip_command);
 #endif
