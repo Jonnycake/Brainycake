@@ -24,9 +24,9 @@ void Stack_construct(void* s, int max_height)
     this->sp = this->s;
     this->bp = this->s;
     this->construct = Stack_construct;
-    this->destroy = Stack_destroy;
+    this->destruct = Stack_destruct;
 }
-void Stack_destroy(void* s)
+void Stack_destruct(void* s)
 {
     Stack* this = (Stack*) s;
     free(this->s);
