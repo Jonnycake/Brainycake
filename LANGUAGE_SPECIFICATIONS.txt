@@ -100,6 +100,8 @@ $s           Put value at pointer into stack pointer (not
 $i           Put value at pointer into instruction pointer
              (not general purpose) - essentially implements
              function return
+$t           Put value at pointer into tape pointer (basic
+             -ally an absolute jump)
 $+           Add value at pointer to register 1
 $-           Subtract value at pointer from register 1
 $*           Multiply value at pointer to register 1
