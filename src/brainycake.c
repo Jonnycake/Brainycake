@@ -356,7 +356,7 @@ bc_execute(char* code)
             printf("\n\nNew Stats: %d - %c - %d\n\n", p, a[p], a[p]);
         }
     }
-    s.destroy(&s);
+    s.destruct(&s);
     registry.destruct(&registry);
     return error;
 }

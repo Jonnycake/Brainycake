@@ -5,10 +5,10 @@ typedef struct {
     void (*push)(void*, int);
     void (*pop)(void*, int*);
     void (*construct)(void*, int);
-    void (*destroy)(void*);
+    void (*destruct)(void*);
 } Stack;
 
 void Stack_push(void* s, int val);
 void Stack_pop(void* s, int* tgt);
 void Stack_construct(void* s, int max_height);
-void Stack_destroy(void* s);
+void Stack_destruct(void* s);
