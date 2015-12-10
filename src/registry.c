@@ -14,12 +14,11 @@ Registry_construct(void* r)
     this->translateRegister = Registry_translateRegister;
     this->switchRegisters = Registry_switchRegisters;
 
+    // So I think what I'm going to have to do is
+    //  to hold all the registers in a single array and cast as it goes
     // 5 General Purpose char Registers
-    this->registers = calloc(sizeof(char), CHAR_REG_COUNT);
-
-    // 5 General Purpose int registers with base, 
-    // stack, tape, and instruction pointer registers
-    this->extregisters = calloc(sizeof(int), EXT_REG_COUNT);
+    this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(int)));
+    this->extregisters = &(this->registers[CHAR_REG_COUNT]);
 }
 
 void
@@ -27,7 +26,6 @@ Registry_destruct(void* r)
 {
     Registry* this = (Registry*) r;
     free(this->registers);
-    free(this->extregisters);
 }
 
 int
@@ -147,7 +145,7 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
                     }
                 }
                 if(!error) {
-                    error = Registry_doLogic(op, reg1, reg2);
+                    error = Registry_doLogic(op, reg1, reg2, (unsigned char*)reg1 - this->registers);
                 }
             }
             break;
@@ -190,7 +188,7 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
                     reg1 = this->translateRegister(r, argv[0]);
                 }
                 if(!error) {
-                    error = Registry_doLogic(op, reg1, reg2);
+                    error = Registry_doLogic(op, reg1, reg2, (unsigned char*)reg1 - this->registers);
                 }
             }
             break;
@@ -268,22 +266,41 @@ Registry_doArithmetic(char op, int* r1, int* r2)
 }
 
 int
-Registry_doLogic(char op, int* r1, int* r2)
+Registry_doLogic(char op, int* r1, int* r2, int destRegIndex)
 {
+    unsigned char* chardest = (unsigned char*) r1;
     switch(op)
     {
         case '&':
-            *r1 &= (int)*r2;
+            if(destRegIndex >= CHAR_REG_COUNT) {
+                *r1 &= (int)*r2;
+            } else {
+                *chardest &= (char)*r2;
+            }
             break;
         case '|':
-            *r1 |= (int)*r2;
+            if(destRegIndex >= CHAR_REG_COUNT) {
+                *r1 |= (int)*r2;
+            } else {
+                *chardest |= (char) *r2;
+            }
             break;
         case '^':
-            *r1 ^= (int)*r2;
+            if(destRegIndex >= CHAR_REG_COUNT) {
+                *r1 ^= (int)*r2;
+            } else {
+                *chardest ^= (char) *r2;
+            }
             break;
         case '!':
-            *r1 = (int) ~*r1;
+            if(destRegIndex >= CHAR_REG_COUNT) {
+                *r1 = (int) ~*r1;
+            } else {
+                *chardest = (char) ~*r1;
+            }
             break;
+        default:
+            return ERROR_BADOP;
     }
     return ERROR_NORMAL;
 }

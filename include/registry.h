@@ -30,4 +30,4 @@ int* Registry_translateRegister(void* r, int regNum);
 // Utility functions
 int Registry_switchRegisters(void* r, int* reg1, int* reg2);
 int Registry_doArithmetic(char op, int* r1, int* r2);
-int Registry_doLogic(char op, int* r1, int* r2);
+int Registry_doLogic(char op, int* r1, int* r2, int destRegIndex);
