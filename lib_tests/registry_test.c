@@ -23,7 +23,19 @@ int main()
     error = r.performOperation(&r, '!', argv2, 1);
     printf("Not %d %d %d\n", r.registers[1], r.registers[2],error);
     printf("I wanna see this now %d\n", r.registers[3]);
+    argv2[0] = '5';
+    argv[0] = '5';
+    argv[1] = '6';
+    r.setRegister(&r, '6', -100);
+    r.setRegister(&r, '5', 300);
+    printf("Set register: %d %d\n", r.extregisters[0], r.extregisters[1]);
+    error = r.performOperation(&r, '+', argv, argc);
+    printf("Add %d %d %d\n", r.extregisters[0], r.extregisters[1],error);
+    error = r.performOperation(&r, ',', argv, argc);
+    printf("Swap %d %d %d\n", r.extregisters[0], r.extregisters[1],error);
+    error = r.performOperation(&r, '+', argv, argc);
+    printf("Add %d %d %d\n", r.extregisters[0], r.extregisters[1],error);
+    error = r.performOperation(&r, '!', argv2, 1);
     r.destruct(&r);
     return 0;
 }
-

@@ -7,12 +7,12 @@
 
 typedef struct {
      unsigned char* registers;
-     char* extregisters;
+     signed int* extregisters;
      int (*setRegister)(void*, char, int);
-     int (*performOperation)(void*, char, int*, int);
-     int (*getRegisterValue)(void*, char, int*);
-     int* (*translateRegister)(void*, int);
-     int (*switchRegisters)(void*, int* reg1, int* reg2);
+     int (*performOperation)(void*, char, signed int*, int);
+     int (*getRegisterValue)(void*, char, signed int*);
+     signed int* (*translateRegister)(void*, int);
+     int (*switchRegisters)(void*, signed int* reg1, signed int* reg2);
      void (*construct)(void*);
      void (*destruct)(void*);
 } Registry;
@@ -23,11 +23,11 @@ void Registry_destruct(void* r);
 
 // Registry object methods
 int Registry_setRegister(void* r, char reg, int val);
-int Registry_performOperation(void* r, char op, int* argv, int argc);
-int Registry_getRegisterValue(void* r, char reg, int* target);
-int* Registry_translateRegister(void* r, int regNum);
+int Registry_performOperation(void* r, char op, signed int* argv, int argc);
+int Registry_getRegisterValue(void* r, char reg, signed int* target);
+signed int* Registry_translateRegister(void* r, int regNum);
 
 // Utility functions
-int Registry_switchRegisters(void* r, int* reg1, int* reg2);
-int Registry_doArithmetic(char op, int* r1, int* r2);
-int Registry_doLogic(char op, int* r1, int* r2, int destRegIndex);
+int Registry_switchRegisters(void* r, signed int* reg1, signed int* reg2);
+int Registry_doArithmetic(char op, signed int* r1, signed int* r2);
+int Registry_doLogic(char op, signed int* r1, signed int* r2, int destRegIndex);

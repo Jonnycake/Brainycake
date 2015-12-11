@@ -18,7 +18,7 @@ Registry_construct(void* r)
     //  to hold all the registers in a single array and cast as it goes
     // 5 General Purpose char Registers
     this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(int)));
-    this->extregisters = &(this->registers[CHAR_REG_COUNT]);
+    this->extregisters = (signed int*)&(this->registers[CHAR_REG_COUNT]);
 }
 
 void
@@ -33,33 +33,18 @@ Registry_setRegister(void* r, char reg, int val)
 {
     Registry* this = (Registry*) r;
     int error = 0;
-    switch(reg)
-    {
-        case '0':
-            error = ERROR_RO;
-            break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-            this->registers[reg - 48] = (char) val;
-            break;
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            this->extregisters[reg - 53] = val;
-            break;
-        default:
-            error = ERROR_UNKNOWN;
-            break;
+    signed int* reg_ptr = this->translateRegister(r, reg);
+    char* chardest = (char*) reg_ptr;
+    if((unsigned char*)reg_ptr - this->registers > (CHAR_REG_COUNT-1)) {
+        *reg_ptr = (signed int) val;
+    } else {
+        *chardest = (char) val;
     }
     return error;
 }
 
 int
-Registry_getRegisterValue(void* r, char reg, int* target)
+Registry_getRegisterValue(void* r, char reg, signed int* target)
 {
     Registry* this = (Registry*) r;
     char* charTgt = (char*)target;
@@ -89,7 +74,7 @@ Registry_getRegisterValue(void* r, char reg, int* target)
 }
 
 int
-Registry_performOperation(void* r, char op, int* argv, int argc)
+Registry_performOperation(void* r, char op, signed int* argv, int argc)
 {
     int error = ERROR_NORMAL;
     Registry* this = (Registry*) r;
@@ -101,8 +86,8 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
         case '/':
         case '%':
             {
-                int* reg1;
-                int* reg2;
+                signed int* reg1;
+                signed int* reg2;
                 if(argc != 0 && argc != 2) {
                     error = ERROR_SYNTAX;
                 }
@@ -127,8 +112,8 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
         case '|':
         case '^':
             {
-                int* reg1;
-                int* reg2;
+                signed int* reg1;
+                signed int* reg2;
                 if(argc != 0 && argc != 2) {
                     error = ERROR_SYNTAX;
                 }
@@ -152,8 +137,8 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
 
         case ',':
             {
-                int* reg1;
-                int* reg2;
+                signed int* reg1;
+                signed int* reg2;
                 if(argc != 0 && argc != 2) {
                     error = ERROR_SYNTAX;
                 }
@@ -176,8 +161,8 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
             break;
         case '!':
             {
-                int* reg1;
-                int* reg2 = (int*) 0;
+                signed int* reg1;
+                signed int* reg2 = (signed int*) 0;
                 if(argc != 1 && argc != 0) {
                     error = ERROR_SYNTAX;
                 }
@@ -199,11 +184,11 @@ Registry_performOperation(void* r, char op, int* argv, int argc)
     return error;
 }
 
-int*
+signed int*
 Registry_translateRegister(void* r, int regNum)
 {
     Registry* this = (Registry*) r;
-    int* reg = (int*)-1;
+    signed int* reg = (signed int*)-1;
     switch(regNum)
     {
         case '0':
@@ -211,38 +196,57 @@ Registry_translateRegister(void* r, int regNum)
         case '2':
         case '3':
         case '4':
-            reg = (int*) &(this->registers[regNum - 48]);
+            reg = (signed int*) &(this->registers[regNum - 48]);
             break;
         case '5':
         case '6':
         case '7':
         case '8':
         case '9':
-            reg = (int*) &(this->extregisters[regNum - 53]);
+            reg = (signed int*) &(this->extregisters[regNum - 53]);
             break;
         case 't':
-            reg = (int*) &(this->extregisters[TAPE_PTR]);
+            reg = (signed int*) &(this->extregisters[TAPE_PTR]);
             break;
         case 'i':
-            reg = (int*) &(this->extregisters[INSTRUCTION_PTR]);
+            reg = (signed int*) &(this->extregisters[INSTRUCTION_PTR]);
             break;
         case 's':
-            reg = (int*) &(this->extregisters[STACK_PTR]);
+            reg = (signed int*) &(this->extregisters[STACK_PTR]);
             break;
         case 'b':
-            reg = (int*) &(this->extregisters[BASE_PTR]);
+            reg = (signed int*) &(this->extregisters[BASE_PTR]);
             break;
     }
     return reg;
 }
 
 int
-Registry_switchRegisters(void* r, int* reg1, int* reg2)
+Registry_switchRegisters(void* r, signed int* reg1, signed int* reg2)
 {
+    Registry* this = (Registry*) r;
+    unsigned char* chardest1;
+    unsigned char* chardest2;
+    int tmp, tmp2;
+    tmp = (int) *reg1;
+    tmp2 = (int) *reg2;
+    if((unsigned char*)reg1 - this->registers < CHAR_REG_COUNT) {
+        chardest1 = (unsigned char*) reg1;
+        *chardest1 = (unsigned char) tmp2;
+    } else {
+        *reg1 = tmp2;
+    }
+
+    if((unsigned char*)reg2 - this->registers < CHAR_REG_COUNT) {
+        chardest2 = (unsigned char*) reg2;
+        *chardest2 = (unsigned char) tmp;
+    } else {
+        *reg2 = tmp;
+    }
     return ERROR_NORMAL;
 }
 int
-Registry_doArithmetic(char op, int* r1, int* r2)
+Registry_doArithmetic(char op, signed int* r1, signed int* r2)
 {
     switch(op)
     {
@@ -266,7 +270,7 @@ Registry_doArithmetic(char op, int* r1, int* r2)
 }
 
 int
-Registry_doLogic(char op, int* r1, int* r2, int destRegIndex)
+Registry_doLogic(char op, signed int* r1, signed int* r2, int destRegIndex)
 {
     unsigned char* chardest = (unsigned char*) r1;
     switch(op)
