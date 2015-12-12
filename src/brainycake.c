@@ -197,13 +197,13 @@ bc_execute(char* code)
                         break;
                     case '|':
                         {
-                            char v[4] = {0};
+                            char v[5] = {0};
                             int count = 0;
                             for( c = code[codepos++];
-                                 c != '|' && count < 3;
+                                 c != '|' && count < 4;
                                  c = code[codepos++], count++
                             ) {
-                                if(c >= 48 && c < 58) {
+                                if((c >= 48 && c < 58) || (count == 0 && c == '-')) {
                                     v[count] = c;
                                 } else {
                                     error = ERROR_UNKNOWN;
@@ -265,7 +265,7 @@ bc_execute(char* code)
                                     break;
                                 default:
                                     printf("Syntax error: Invalid register operation '%c'.\n", c);
-                                    error = ERROR_UNKNOWN;
+                                    error = ERROR_BADOP;
                                     break;
                             }
                         }
