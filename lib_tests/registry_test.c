@@ -3,9 +3,11 @@
 
 int main()
 {
+    char t[255];
+    t[0] = 'a';
     Registry r;
-    Registry_construct(&r);
-    r.setRegister(&r, '1', 30);
+    Registry_construct(&r, (int*)0, (int*) 0, (int*)0, (int*) 0);
+    r.setRegister(&r, '1', 200);
     r.setRegister(&r, '2', 45);
     int argv[2];
     int argv2[1];
@@ -36,6 +38,10 @@ int main()
     error = r.performOperation(&r, '+', argv, argc);
     printf("Add %d %d %d\n", r.extregisters[0], r.extregisters[1],error);
     error = r.performOperation(&r, '!', argv2, 1);
+    printf("Not %d %d %d\n", r.extregisters[0], r.extregisters[1], error);
+    error = r.performOperation(&r, '!', argv2, 1);
+    printf("Not %d %d %d\n", r.extregisters[0], r.extregisters[1], error);
+    r.printRegisters(&r);
     r.destruct(&r);
     return 0;
 }

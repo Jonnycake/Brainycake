@@ -3,7 +3,7 @@
 #include <bcerrors.h>
 
 void
-Registry_construct(void* r)
+Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, signed int* tp)
 {
     Registry* this = (Registry*) r;
     this->construct = Registry_construct;
@@ -13,12 +13,18 @@ Registry_construct(void* r)
     this->performOperation = Registry_performOperation;
     this->translateRegister = Registry_translateRegister;
     this->switchRegisters = Registry_switchRegisters;
+    this->printRegisters = Registry_printRegisters;
+    this->doArithmetic = Registry_doArithmetic;
+    this->doLogic = Registry_doLogic;
+    this->checkExt = Registry_checkExt;
 
-    // So I think what I'm going to have to do is
-    //  to hold all the registers in a single array and cast as it goes
     // 5 General Purpose char Registers
     this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(int)));
     this->extregisters = (signed int*)&(this->registers[CHAR_REG_COUNT]);
+    this->extregisters[BASE_PTR] = (signed int) bp;
+    this->extregisters[STACK_PTR] = (signed int) sp;
+    this->extregisters[INSTRUCTION_PTR] = (signed int) ip;
+    this->extregisters[TAPE_PTR] = (signed int) tp;
 }
 
 void
@@ -32,7 +38,7 @@ int
 Registry_setRegister(void* r, char reg, int val)
 {
     Registry* this = (Registry*) r;
-    int error = 0;
+    int error = ERROR_NORMAL;
     signed int* reg_ptr = this->translateRegister(r, reg);
     char* chardest = (char*) reg_ptr;
     if((unsigned char*)reg_ptr - this->registers > (CHAR_REG_COUNT-1)) {
@@ -48,7 +54,7 @@ Registry_getRegisterValue(void* r, char reg, signed int* target)
 {
     Registry* this = (Registry*) r;
     char* charTgt = (char*)target;
-    int error = 0;
+    int error = ERROR_NORMAL;
     switch(reg)
     {
         case '0':
@@ -104,7 +110,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                     }
                 }
                 if(!error) {
-                    Registry_doArithmetic(op, reg1, reg2);
+                    this->doArithmetic(r, op, reg1, reg2);
                 }
             }
             break;
@@ -130,7 +136,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                     }
                 }
                 if(!error) {
-                    error = Registry_doLogic(op, reg1, reg2, (unsigned char*)reg1 - this->registers);
+                    error = Registry_doLogic(r, op, reg1, reg2);
                 }
             }
             break;
@@ -173,7 +179,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                     reg1 = this->translateRegister(r, argv[0]);
                 }
                 if(!error) {
-                    error = Registry_doLogic(op, reg1, reg2, (unsigned char*)reg1 - this->registers);
+                    error = Registry_doLogic(r, op, reg1, reg2);
                 }
             }
             break;
@@ -185,7 +191,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
 }
 
 signed int*
-Registry_translateRegister(void* r, int regNum)
+Registry_translateRegister(void* r, char regNum)
 {
     Registry* this = (Registry*) r;
     signed int* reg = (signed int*)-1;
@@ -206,16 +212,16 @@ Registry_translateRegister(void* r, int regNum)
             reg = (signed int*) &(this->extregisters[regNum - 53]);
             break;
         case 't':
-            reg = (signed int*) &(this->extregisters[TAPE_PTR]);
+            reg = (signed int*) this->extregisters[TAPE_PTR];
             break;
         case 'i':
-            reg = (signed int*) &(this->extregisters[INSTRUCTION_PTR]);
+            reg = (signed int*) this->extregisters[INSTRUCTION_PTR];
             break;
         case 's':
-            reg = (signed int*) &(this->extregisters[STACK_PTR]);
+            reg = (signed int*) this->extregisters[STACK_PTR];
             break;
         case 'b':
-            reg = (signed int*) &(this->extregisters[BASE_PTR]);
+            reg = (signed int*) this->extregisters[BASE_PTR];
             break;
     }
     return reg;
@@ -246,32 +252,57 @@ Registry_switchRegisters(void* r, signed int* reg1, signed int* reg2)
     return ERROR_NORMAL;
 }
 int
-Registry_doArithmetic(char op, signed int* r1, signed int* r2)
+Registry_doArithmetic(void* r, char op, signed int* r1, signed int* r2)
 {
+    Registry* this = (Registry*) r;
+    char isExtended = this->checkExt(r, r1);
+    char* charTgt = r1;
     switch(op)
     {
         case '+':
-            *r1 += *r2;
+            if(isExtended) {
+                *r1 += *r2;
+            } else {
+                *charTgt += (char) *r2;
+            }
             break;
         case '-':
-            *r1 -= *r2;
+            if(isExtended) {
+                *r1 -= *r2;
+            } else {
+                *charTgt -= (char) *r2;
+            }
             break;
         case '*':
-            *r1 *= *r2;
+            if(isExtended) {
+                *r1 *= *r2;
+            } else {
+                *charTgt *= (char) *r2;
+            }
             break;
         case '/':
-            *r1 /= *r2;
+            if(isExtended) {
+                *r1 /= *r2;
+            } else {
+                *charTgt /= (char) *r2;
+            }
             break;
         case '%':
-            *r1 %= *r2;
+            if(isExtended) {
+                *r1 %= *r2;
+            } else {
+                *charTgt %= (char) *r2;
+            }
             break;
     }
     return ERROR_NORMAL;
 }
 
 int
-Registry_doLogic(char op, signed int* r1, signed int* r2, int destRegIndex)
+Registry_doLogic(void* r, char op, signed int* r1, signed int* r2)
 {
+    Registry* this = (Registry*) r;
+    int destRegIndex = (unsigned char*) r1 - this->registers;
     unsigned char* chardest = (unsigned char*) r1;
     switch(op)
     {
@@ -307,4 +338,28 @@ Registry_doLogic(char op, signed int* r1, signed int* r2, int destRegIndex)
             return ERROR_BADOP;
     }
     return ERROR_NORMAL;
+}
+
+void
+Registry_printRegisters(void* r)
+{
+    Registry* this = (Registry*) r;
+    int i;
+    for(i = 0; i < CHAR_REG_COUNT; i++) {
+        printf("Register %d: %d\n", i, this->registers[i]);
+    }
+    for(i = 0; i < EXT_REG_COUNT; i++) {
+        printf("Register %d: %d\n", 5 + i, this->extregisters[i]);
+    }
+}
+
+char
+Registry_checkExt(void* r, signed int* reg)
+{
+    Registry* this = (Registry*) r;
+    char extended = 0;
+    if((unsigned char*) reg - this->registers >= CHAR_REG_COUNT) {
+        extended = 1;
+    }
+    return extended;
 }

@@ -24,7 +24,7 @@ int
 bc_preprocess(char* mainfile, char** code)
 {
     char c;
-    char error = 0;
+    char error = ERROR_NORMAL;
     FILE* f = fopen(mainfile, "rb");
     int codepos = 0;
     struct stat filestat;
@@ -92,17 +92,16 @@ bc_execute(char* code)
     int codelen = strlen(code);
     int codepos = 0;
     char c;
-    char registers[5] = {0};
-    int extregisters[5] = {0};
-
     int loop_positions[MAX_LOOPS] = {0};
     unsigned char numloops = 0;
     char* a = calloc(sizeof(char), INIT_CELL_COUNT);
     int curCellCount = INIT_CELL_COUNT;
     int p = 0;
-    int error = 0;
+    int error = ERROR_NORMAL;
+    char* regArgv;
+    int regArgc = 0;
     Registry registry;
-    Registry_construct(&registry);
+    Registry_construct(&registry, (int*) 0, (int*) 0, (int*) 0, (int*)a);
 
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT);
@@ -110,6 +109,7 @@ bc_execute(char* code)
     for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
             printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, p, a[p], a[p]);
+            Registry_printRegisters(&registry);
         }
         switch(mode)
         {
@@ -241,44 +241,27 @@ bc_execute(char* code)
                                 case '2':
                                 case '3':
                                 case '4':
-                                    registers[c - 48] = a[p];
-                                    break;
                                 case '5':
                                 case '6':
                                 case '7':
                                 case '8':
                                 case '9':
-                                    extregisters[c - 53] = a[p];
+                                    registry.setRegister(&registry, c, a[p]);
                                     break;
                                 case '{':
                                     mode = MODE_REG_MANIP;
                                     break;
                                 case '+':
-                                    registers[1] += a[p];
-                                    break;
                                 case '-':
-                                    registers[1] -= a[p];
-                                    break;
                                 case '/':
-                                    registers[1] /= a[p];
-                                    break;
                                 case '*':
-                                    registers[1] *= a[p];
-                                    break;
                                 case '%':
-                                    registers[1] %= a[p];
-                                    break;
                                 case '&':
-                                    registers[1] &= a[p];
-                                    break;
                                 case '|':
-                                    registers[1] |= a[p];
-                                    break;
                                 case '^':
-                                    registers[1] ^= a[p];
-                                    break;
                                 case '!':
-                                    registers[1] = ~registers[1];
+                                    regArgc = 0;
+                                    registry.performOperation(&registry, c, regArgv, regArgc);
                                     break;
                                 default:
                                     printf("Syntax error: Invalid register operation '%c'.\n", c);
@@ -288,39 +271,41 @@ bc_execute(char* code)
                         }
                         break;
                     case 's':
-                        a[p] ^= registers[1];
-                        registers[1] ^= a[p];
-                        a[p] ^= registers[1];
+                        regArgc = 0;
+                        registry.performOperation(&registry, ',', regArgv, regArgc);
                         break;
                     case 'p':
-                        c = code[codepos++];
-                        if( c == EOF ) {
-                            printf("Error: Scanned to end of file when attempting to identify register to print.");
-                        } else {
-                            switch(c)
-                            {
-                                case '0':
-                                    printf("NULL");
-                                    break;
-                                case '1':
-                                case '2':
-                                case '3':
-                                case '4':
-                                    printf("%c", registers[c - 48]);
-                                    break;
-                                case '5':
-                                    printf("%x", extregisters[0]);
-                                    break;
-                                case '6':
-                                case '7':
-                                case '8':
-                                case '9':
-                                    printf("%d", extregisters[c - 53]);
-                                    break;
-                                default:
-                                    printf("Error: Unknown register '%c'.", c);
-                                    break;
-                            }
+                        {
+                         int val;
+                         c = code[codepos++];
+                         if( c == EOF ) {
+                             printf("Error: Scanned to end of file when attempting to identify register to print.");
+                         } else {
+                             switch(c)
+                             {
+                                 case '0':
+                                     printf("NULL");
+                                     break;
+                                 case '1':
+                                 case '2':
+                                 case '3':
+                                 case '4':
+                                     error = registry.getRegisterValue(&registry, c, &val);
+                                     printf("%c", val);
+                                     break;
+                                 case '5':
+                                 case '6':
+                                 case '7':
+                                 case '8':
+                                 case '9':
+                                     error = registry.getRegisterValue(&registry, c, &val);
+                                     printf("%d", val);
+                                     break;
+                                 default:
+                                     printf("Error: Unknown register '%c'.", c);
+                                     break;
+                             }
+                         }
                         }
                         break;
 
@@ -354,6 +339,7 @@ bc_execute(char* code)
 
         if(verbose + superverbose) {
             printf("\n\nNew Stats: %d - %c - %d\n\n", p, a[p], a[p]);
+            Registry_printRegisters(&registry);
         }
     }
     s.destruct(&s);
@@ -364,7 +350,7 @@ bc_execute(char* code)
 int
 bc_reg_manip(Registry* r, char* manip_command)
 {
-    int error = 0;
+    int error = ERROR_NORMAL;
     char mode = MODE_REG_MANIP_SET;
 /*    switch(c)
     {

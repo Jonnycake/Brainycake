@@ -124,6 +124,11 @@ ${a&b}       Bitwise AND register a with register b
 ${a|b}       Bitwise OR register a with register b
 ${a^b}       Bitwise XOR register a with register b
 ${!a}        Bitwise NOT register a
+${'a}        Pop the value off the stack into register a
+${"a}        Push the value in register a onto stack
+${,a}        Copy the value from the tape pointer to reg-
+             ister a
+${a,}        Copy the value from register a to tape
 
 
 Fun Stuff:
@@ -229,3 +234,6 @@ Additional Notes:
       the very top of the stack
     - The backtrace will be of a fixed maximum length represented by
       the allowed number of nested function calls
+  - The char registers ($0-$4) consist of unsigned chars
+  - The extended registers ($5-$9, $i, $t, $b, $s) consist of signed
+    integers

@@ -17,5 +17,9 @@ lib:
 lib_test:
 	make lib
 	${CC} ${CCOPTS} -o registry_test lib_tests/registry_test.c registry.o
+	${CC} ${CCOPTS} -o stack_test lib_tests/stack_test.c stack.o
+clean_test:
+	make clean
+	rm *_test
 install:
 	cp bcinterpreter ${BINDIR}

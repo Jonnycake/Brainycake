@@ -41,7 +41,7 @@
 
 int main(int argc, char** argv)
 {
-    int error = 0;
+    int error = ERROR_NORMAL;
     char* mainfile;
     char* code;
     extern char verbose, superverbose, debug, quiet;
