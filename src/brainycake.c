@@ -89,27 +89,34 @@ bc_include(char* file, char** functions, char** code, int cursize)
 int
 bc_execute(char* code)
 {
+    // Basic variables
     int codelen = strlen(code);
     int codepos = 0;
     char c;
     int loop_positions[MAX_LOOPS] = {0};
     unsigned char numloops = 0;
-    char* a = calloc(sizeof(char), INIT_CELL_COUNT);
+    char* tape = calloc(sizeof(char), INIT_CELL_COUNT);
+    char** a;
     int curCellCount = INIT_CELL_COUNT;
     int p = 0;
     int error = ERROR_NORMAL;
     char* regArgv;
     int regArgc = 0;
-    Registry registry;
-    Registry_construct(&registry, (int*) 0, (int*) 0, (int*) 0, (int*)a);
 
+    // Set our mode to execution
+    mode = MODE_EXEC;
+
+    // Memory objects
+    Registry registry;
+    Registry_construct(&registry, (int*) 0, (int*) 0, (int*) 0, (int*)tape);
+    a = (char**)(&registry.extregisters[TAPE_PTR]);
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT);
-    mode = MODE_EXEC;
+
     for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
-            printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, p, a[p], a[p]);
-            Registry_printRegisters(&registry);
+            printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, p, **a, **a);
+            registry.printRegisters(&registry);
         }
         switch(mode)
         {
@@ -136,37 +143,37 @@ bc_execute(char* code)
                 {
                     // Traditional brainfuck
                     case '>':
-                        if(++p >= curCellCount) {
+                        if((++(*a) - tape) >= curCellCount) {
                             // Provide wrap around rather than error out
                             if((curCellCount + INIT_CELL_COUNT) > MAX_CELL_COUNT) {
-                                p = 0;
+                                *a = tape;
                             } else {
                                 curCellCount += INIT_CELL_COUNT;
-                                a = realloc(a, curCellCount * sizeof(char));
+                                tape = realloc(tape, curCellCount * sizeof(char));
                             }
                         }
                         break;
                     case '<':
-                        if(--p < 0) {
-                            p = curCellCount - 1;
+                        if(--(*a) < tape) {
+                            *a = tape + curCellCount - 1;
                         }
                         break;
                     case '.':
-                        putchar(a[p]);
+                        putchar(**a);
                         break;
                     case ',':
-                        a[p] = getchar();
+                        **a = getchar();
                         break;
                     case '+':
-                        a[p]++;
+                        (**a)++;
                         break;
                     case '-':
-                        a[p]--;
+                        (**a)--;
                         break;
                     case '[':
-                        if(a[p] && (numloops == 0 || loop_positions[numloops - 1] != codepos)) {
+                        if((**a) && (numloops == 0 || loop_positions[numloops - 1] != codepos)) {
                             loop_positions[numloops++] = codepos;
-                        } else if(!a[p]) {
+                        } else if(!(**a)) {
                             codepos++;
                             int lastloop = numloops++;
                             for( ; numloops != lastloop && codepos != codelen ; codepos++) {
@@ -179,7 +186,7 @@ bc_execute(char* code)
                         }
                         break;
                     case ']':
-                        if(a[p]) {
+                        if((**a)) {
                             codepos = loop_positions[numloops - 1];
                         } else {
                             if(numloops != 0) {
@@ -190,10 +197,10 @@ bc_execute(char* code)
 
                     // Shortcuts
                     case '_':
-                        p = 0;
+                        *a = tape;
                         break;
                     case '^':
-                        a[p] = 0;
+                        (**a) = 0;
                         break;
                     case '|':
                         {
@@ -215,7 +222,7 @@ bc_execute(char* code)
                                 if(count > 255 && !quiet) {
                                     printf("Warning: Number is greater than 255, there may be unexpected results.\n");
                                 }
-                                a[p] += atoi(v);
+                                (**a) += atoi(v);
                             } else {
                                 printf("Error: Requested number is out of bounds.\n");
                         }
@@ -235,7 +242,7 @@ bc_execute(char* code)
                             {
                                 case '0':
                                     printf("Error: Attempted to write to read-only register ($0).");
-                                    error = 1;
+                                    error = ERROR_RO;
                                     break;
                                 case '1':
                                 case '2':
@@ -246,7 +253,7 @@ bc_execute(char* code)
                                 case '7':
                                 case '8':
                                 case '9':
-                                    registry.setRegister(&registry, c, a[p]);
+                                    registry.setRegister(&registry, c, (**a));
                                     break;
                                 case '{':
                                     mode = MODE_REG_MANIP;
@@ -303,6 +310,7 @@ bc_execute(char* code)
                                      break;
                                  default:
                                      printf("Error: Unknown register '%c'.", c);
+                                     error = ERROR_UNKREG;
                                      break;
                              }
                          }
@@ -311,19 +319,19 @@ bc_execute(char* code)
 
                     // Stack
                     case '"':
-                        bc_push(&s, a, p);
+                        bc_push(&s, (*a), (*a) - tape);
                         break;
 
                     case '\'':
-                        bc_pop(&s, a, p);
+                        bc_pop(&s, (*a), (*a) - tape);
                         break;
 
                     // Debugging
                     case 'h':
-                        printf("0x%x", (a[p] >= 0) ? a[p] : 256 + a[p]);
+                        printf("0x%x", ((**a) >= 0) ? (**a) : 256 + (**a));
                         break;
                     case 'd':
-                        printf("%d", (a[p] >= 0) ? a[p] : 256 + a[p]);
+                        printf("%d", ((**a) >= 0) ? (**a) : 256 + (**a));
                         break;
                     case 'v':
                         verbose = (verbose) ? 0 : 1;
@@ -338,8 +346,8 @@ bc_execute(char* code)
         }
 
         if(verbose + superverbose) {
-            printf("\n\nNew Stats: %d - %c - %d\n\n", p, a[p], a[p]);
-            Registry_printRegisters(&registry);
+            printf("\n\nNew Stats: %d - %c - %d\n\n", p, (**a), (**a));
+            registry.printRegisters(&registry);
         }
     }
     s.destruct(&s);
@@ -350,56 +358,6 @@ bc_execute(char* code)
 int
 bc_reg_manip(Registry* r, char* manip_command)
 {
-    int error = ERROR_NORMAL;
-    char mode = MODE_REG_MANIP_SET;
-/*    switch(c)
-    {
-        case '!':
-            if(mode == MODE_REG_MANIP_DONE ) {
-                printf("Syntax Error: Registry manipulation is already complete!\n");
-                error = ERROR_SYNTAX;
-            } else if( mode == MODE_REG_MANIP_NOT ) {
-                printf("Syntax Error: Already specified not!\n");
-                error = ERROR_SYNTAX;
-            } else {
-                mode = MODE_REG_MANIP_NOT;
-            }
-            break;
-        case '0':
-            printf("Error: Can not manipulate a read only register!\n");
-            error = ERROR_OOB;
-            break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-            if(mode == MODE_REG_MANIP_DONE) {
-                printf("Syntax Error: Registry manipulation is already complete!\n");
-                error = ERROR_SYNTAX;
-            } else if( mode == MODE_REG_MANIP_NOT ) {
-                registers[c - 48] = ~registers[c - 48];
-            }
-            break;
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            if(mode == MODE_REG_MANIP_DONE) {
-                printf("Syntax Error: Registry manipulation is already complete!\n");
-                error = ERROR_SYNTAX;
-            } else if( mode == MODE_REG_MANIP_NOT ) {
-                extregisters[c - 53] = ~extregisters[c - 53];
-            }
-            break;
-        case '}':
-           mode = MODE_EXEC;
-           break;
-        default:
-           printf("Syntax Error: Invalid registry manipulation function.\n");
-           error = ERROR_SYNTAX;
-        break;
-    }*/
 }
 
 void
