@@ -4,10 +4,12 @@ BINDIR = /usr/bin/
 all:
 	make build
 	make clean
+bin:
+	${CC} ${CCOPTS} -o bcinterpreter src/bcinterpreter.c brainycake.o stack.o registry.o
+	${CC} ${CCOPTS} -o bcc src/bcc.c brainycake.o stack.o registry.o	
 build:
 	make lib
-	${CC} ${CCOPTS} -o bcinterpreter src/bcinterpreter.c brainycake.o stack.o registry.o
-	${CC} ${CCOPTS} -o bcc src/bcc.c brainycake.o stack.o registry.o
+	make bin
 clean:
 	rm *.o
 lib:
