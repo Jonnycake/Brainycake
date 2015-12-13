@@ -15,6 +15,15 @@ void Stack_pop(void* s, int* tgt)
     *tgt = *(this->sp);
     *(this->sp) = 0;
 }
+void Stack_printStack(void* s)
+{
+    Stack* this = (Stack*) s;
+    int* sp = this->sp;
+    while(sp > this->bp) {
+        printf("%d: %x\n", sp - this->bp, *sp);
+        sp--;
+    }
+}
 void Stack_construct(void* s, int max_height)
 {
     Stack* this = (Stack*) s;
@@ -25,6 +34,7 @@ void Stack_construct(void* s, int max_height)
     this->bp = this->s;
     this->construct = Stack_construct;
     this->destruct = Stack_destruct;
+    this->printStack = Stack_printStack;
 }
 void Stack_destruct(void* s)
 {

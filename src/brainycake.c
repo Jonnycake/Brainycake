@@ -115,8 +115,11 @@ bc_execute(char* code)
 
     for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
-            printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, p, **a, **a);
+            printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, *a - tape, **a, **a);
+            printf("=========== Registers =========\n");
             registry.printRegisters(&registry);
+            printf("===========   Stack   =========\n");
+            s.printStack(&s);
         }
         switch(mode)
         {
@@ -346,8 +349,11 @@ bc_execute(char* code)
         }
 
         if(verbose + superverbose) {
-            printf("\n\nNew Stats: %d - %c - %d\n\n", p, (**a), (**a));
+            printf("\n\nNew Stats: %d - %c - %d\n\n", *a - tape, (**a), (**a));
+            printf("=========== Registers =========\n");
             registry.printRegisters(&registry);
+            printf("===========   Stack   =========\n");
+            s.printStack(&s);
         }
     }
     s.destruct(&s);
