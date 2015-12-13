@@ -356,6 +356,13 @@ bc_execute(char* code)
             s.printStack(&s);
         }
     }
+    if(debug) {
+        printf("\n\nNew Stats: %d - %c - %d\n\n", *a - tape, (**a), (**a));
+        printf("=========== Registers =========\n");
+        registry.printRegisters(&registry);
+        printf("===========   Stack   =========\n");
+        s.printStack(&s);
+    }
     s.destruct(&s);
     registry.destruct(&registry);
     return error;
