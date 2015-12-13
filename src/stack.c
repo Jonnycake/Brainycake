@@ -20,7 +20,15 @@ void Stack_printStack(void* s)
     Stack* this = (Stack*) s;
     int* sp = this->sp;
     while(sp > this->bp) {
-        printf("Stack %d: %x\n", sp - this->bp, *sp);
+        printf("   Stack %02d: ", sp - this->bp);
+		
+		int x = sizeof(int) - 1;
+		for( ; x >= 0 ; x-- ) {
+			printf("%02x ", (*sp >> (x * 8)) & 0xFF);
+		}
+		
+		printf("\n");
+		
         sp--;
     }
 }
