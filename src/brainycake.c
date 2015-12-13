@@ -322,11 +322,11 @@ bc_execute(char* code)
 
                     // Stack
                     case '"':
-                        bc_push(&s, (*a), (*a) - tape);
+                        bc_push(&s, tape, (*a) - tape);
                         break;
 
                     case '\'':
-                        bc_pop(&s, (*a), (*a) - tape);
+                        bc_pop(&s, tape, (*a) - tape);
                         break;
 
                     // Debugging
