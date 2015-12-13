@@ -237,3 +237,15 @@ Additional Notes:
   - The char registers ($0-$4) consist of unsigned chars
   - The extended registers ($5-$9, $i, $t, $b, $s) consist of signed
     integers
+  - POTENTIAL ENHANCEMENT: Stack modes
+    - Allow for differing stack widths (8 bit, 32 bit, or 64 bit)
+      configurable by command line option
+    - Potentially allow for program to specify the stack mode it
+      wants to operate under
+      - Should only be allowed once at the beginning of the program
+        - Specify by numeric operator
+          - 1 = 8 bit  (1 byte)
+          - 4 = 32 bit (4 byte)
+          - 8 = 64 bit (8 byte)
+    - May have to rethink working with registers however, could
+      limit our ability to push extended registers onto the stack
