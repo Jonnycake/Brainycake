@@ -4,6 +4,8 @@
 #include <ctype.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <math.h>
+
 #define MIN_LOAD 1
 #include <brainycake.h>
 
@@ -397,11 +399,11 @@ void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
     printf("=======    Tape   ======\n");
     for( ; curCell < curCellCount ; curCell++) {
         if(tape[curCell] != (char) 0) {
-            printf("Cell #%d: %x\n", curCell + 1, tape[curCell]);
+            printf("Cell #%*d: %x\n", 0 - (int)ceil(log10(curCellCount)), curCell + 1, tape[curCell]);
         }
     }
     curCell = (signed char*) r->extregisters[TAPE_PTR] - tape;
-    printf("Current Cell (#%d): %x\n", curCell + 1, tape[curCell]);
+    printf("Current Cell (%d/%d): %x\n", curCell + 1, curCellCount, tape[curCell]);
     printf("======= Registers ======\n");
     r->printRegisters(r);
     printf("========   Stack   =====\n");

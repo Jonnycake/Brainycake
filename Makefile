@@ -1,12 +1,13 @@
 CC = "gcc"
 CCOPTS = -Wall -I./include/
 BINDIR = /usr/bin/
+LIBS = -lm
 all:
 	make build
 	make clean
 bin:
-	${CC} ${CCOPTS} -o bcinterpreter src/bcinterpreter.c brainycake.o stack.o registry.o
-	${CC} ${CCOPTS} -o bcc src/bcc.c brainycake.o stack.o registry.o	
+	${CC} ${CCOPTS} -o bcinterpreter src/bcinterpreter.c brainycake.o stack.o registry.o ${LIBS}
+	${CC} ${CCOPTS} -o bcc src/bcc.c brainycake.o stack.o registry.o ${LIBS}
 build:
 	make lib
 	make bin
