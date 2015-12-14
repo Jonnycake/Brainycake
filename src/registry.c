@@ -346,24 +346,17 @@ Registry_printRegisters(void* r)
     Registry* this = (Registry*) r;
     int i;
     for(i = 0; i < CHAR_REG_COUNT; i++) {
-        printf("Register %02d: ", i);
-		
-		int x = sizeof(int) - 1;
-		for( ; x >= 0 ; x-- ) {
-			printf("%02x ", (this->registers[i] >> (x * 8)) & 0xFF);
-		}
-		
-		printf("\n");
+        printf("Register %02d: %02x\n", i, this->registers[i]);
     }
+
     for(i = 0; i < EXT_REG_COUNT; i++) {
-        printf("Register %02d: ", 5 + i);
-		
-		int x = sizeof(int) - 1;
-		for( ; x >= 0 ; x-- ) {
-			printf("%02x ", (this->extregisters[i] >> (x * 8)) & 0xFF);
-		}
-		
-		printf("\n");
+        int x = sizeof(int) - 1;
+        printf("Register %02d: ", CHAR_REG_COUNT + i);
+        for( ; x >= 0 ; x-- ) {
+            printf("%02x ", (this->extregisters[i] >> (x * 8)) & 0xFF);
+        }
+
+        printf("\n");
     }
 }
 
