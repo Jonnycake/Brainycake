@@ -41,7 +41,7 @@ Registry_setRegister(void* r, char reg, int val)
     int error = ERROR_NORMAL;
     signed int* reg_ptr = this->translateRegister(r, reg);
     char* chardest = (char*) reg_ptr;
-    if((unsigned char*)reg_ptr - this->registers > (CHAR_REG_COUNT-1)) {
+    if(this->checkExt(r, reg_ptr)) {
         *reg_ptr = (signed int) val;
     } else {
         *chardest = (char) val;
@@ -236,14 +236,14 @@ Registry_switchRegisters(void* r, signed int* reg1, signed int* reg2)
     int tmp, tmp2;
     tmp = (int) *reg1;
     tmp2 = (int) *reg2;
-    if((unsigned char*)reg1 - this->registers < CHAR_REG_COUNT) {
+    if(this->checkExt(r, reg1) == 0) {
         chardest1 = (unsigned char*) reg1;
         *chardest1 = (unsigned char) tmp2;
     } else {
         *reg1 = tmp2;
     }
 
-    if((unsigned char*)reg2 - this->registers < CHAR_REG_COUNT) {
+    if(this->checkExt(r, reg2) == 0) {
         chardest2 = (unsigned char*) reg2;
         *chardest2 = (unsigned char) tmp;
     } else {
@@ -302,33 +302,33 @@ int
 Registry_doLogic(void* r, char op, signed int* r1, signed int* r2)
 {
     Registry* this = (Registry*) r;
-    int destRegIndex = (unsigned char*) r1 - this->registers;
+    int isExtended = this->checkExt(r, r1);
     unsigned char* chardest = (unsigned char*) r1;
     switch(op)
     {
         case '&':
-            if(destRegIndex >= CHAR_REG_COUNT) {
+            if(isExtended) {
                 *r1 &= (int)*r2;
             } else {
                 *chardest &= (char)*r2;
             }
             break;
         case '|':
-            if(destRegIndex >= CHAR_REG_COUNT) {
+            if(isExtended) {
                 *r1 |= (int)*r2;
             } else {
                 *chardest |= (char) *r2;
             }
             break;
         case '^':
-            if(destRegIndex >= CHAR_REG_COUNT) {
+            if(isExtended) {
                 *r1 ^= (int)*r2;
             } else {
                 *chardest ^= (char) *r2;
             }
             break;
         case '!':
-            if(destRegIndex >= CHAR_REG_COUNT) {
+            if(isExtended) {
                 *r1 = (int) ~*r1;
             } else {
                 *chardest = (char) ~*r1;
