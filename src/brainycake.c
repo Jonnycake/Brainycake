@@ -26,6 +26,9 @@ bc_preprocess(char* mainfile, char** code)
     char c;
     char error = ERROR_NORMAL;
     FILE* f = fopen(mainfile, "rb");
+    if(!f) {
+        return ERROR_BADFILE;
+    }
     int codepos = 0;
     struct stat filestat;
     stat(mainfile, &filestat);
@@ -115,7 +118,7 @@ bc_execute(char* code)
 
     for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
-            bc_debug(&s, &registry, tape);
+            bc_debug(&s, &registry, tape, curCellCount);
         }
         switch(mode)
         {
@@ -345,11 +348,11 @@ bc_execute(char* code)
         }
 
         if(verbose + superverbose) {
-            bc_debug(&s, &registry, tape);
+            bc_debug(&s, &registry, tape, curCellCount);
         }
     }
     if(debug) {
-        bc_debug(&s, &registry, tape);
+        bc_debug(&s, &registry, tape, curCellCount);
     }
     s.destruct(&s);
     registry.destruct(&registry);
@@ -388,10 +391,17 @@ void bc_pop(Stack* s, char* a, int p)
     }
 }
 
-void bc_debug(Stack* s, Registry* r, signed char* tape)
+void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
 {
+    int curCell = 0;
     printf("=======    Tape   ======\n");
-    printf("Cell #%d: %x\n", (signed char*) r->extregisters[TAPE_PTR] - tape, *((signed char*) r->extregisters[TAPE_PTR]));
+    for( ; curCell < curCellCount ; curCell++) {
+        if(tape[curCell] != (char) 0) {
+            printf("Cell #%d: %x\n", curCell + 1, tape[curCell]);
+        }
+    }
+    curCell = (signed char*) r->extregisters[TAPE_PTR] - tape;
+    printf("Current Cell (#%d): %x\n", curCell + 1, tape[curCell]);
     printf("======= Registers ======\n");
     r->printRegisters(r);
     printf("========   Stack   =====\n");

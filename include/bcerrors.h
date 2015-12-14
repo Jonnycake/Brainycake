@@ -12,3 +12,4 @@
 #define ERROR_MEMORY  10 // Memory limit has been reached
 #define ERROR_UNKREG  11 // Unknown register
 #define ERROR_UNKNOWN 12 // All other error conditions
+#define ERROR_BADFILE 13 // Non-existent file specified

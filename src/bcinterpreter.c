@@ -77,8 +77,10 @@ int main(int argc, char** argv)
             }
         }
         if(!error) {
-            bc_preprocess(mainfile, &code);
-            error = bc_execute(code);
+            error = bc_preprocess(mainfile, &code);
+            if(!error) {
+                error = bc_execute(code);
+            }
         }
     }
     return error;
