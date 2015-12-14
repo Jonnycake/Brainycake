@@ -115,11 +115,7 @@ bc_execute(char* code)
 
     for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
-            printf("\n\nINSTRUCTION: %c\nCurrent Stats: %d - %c - %d\n\n", c, *a - tape, **a, **a);
-            printf("======= Registers ======\n");
-            registry.printRegisters(&registry);
-            printf("=======   Stack   ======\n");
-            s.printStack(&s);
+            bc_debug(&s, &registry, tape);
         }
         switch(mode)
         {
@@ -349,19 +345,11 @@ bc_execute(char* code)
         }
 
         if(verbose + superverbose) {
-            printf("\n\nNew Stats: %d - %c - %d\n\n", *a - tape, (**a), (**a));
-            printf("======= Registers ======\n");
-            registry.printRegisters(&registry);
-            printf("=======   Stack   ======\n");
-            s.printStack(&s);
+            bc_debug(&s, &registry, tape);
         }
     }
     if(debug) {
-        printf("\n\nNew Stats: %d - %c - %d\n\n", *a - tape, (**a), (**a));
-        printf("======= Registers ======\n");
-        registry.printRegisters(&registry);
-        printf("========   Stack   =====\n");
-        s.printStack(&s);
+        bc_debug(&s, &registry, tape);
     }
     s.destruct(&s);
     registry.destruct(&registry);
@@ -398,4 +386,14 @@ void bc_pop(Stack* s, char* a, int p)
     for( ; x >= 0 ; x-- ) {
         a[i++] = (v >> (x * 8)) & 0xFF;
     }
+}
+
+void bc_debug(Stack* s, Registry* r, signed char* tape)
+{
+    printf("=======    Tape   ======\n");
+    printf("Cell #%d: %x\n", (signed char*) r->extregisters[TAPE_PTR] - tape, *((signed char*) r->extregisters[TAPE_PTR]));
+    printf("======= Registers ======\n");
+    r->printRegisters(r);
+    printf("========   Stack   =====\n");
+    s->printStack(s);
 }

@@ -74,4 +74,6 @@
      * Brainycake Registry Manipulation
      */
      int bc_reg_manip(Registry* r, char* manip_command);
+
+     void bc_debug(Stack* s, Registry* r, signed char* tape);
 #endif
