@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <stack.h>
 
@@ -18,17 +19,17 @@ void Stack_pop(void* s, int* tgt)
 void Stack_printStack(void* s)
 {
     Stack* this = (Stack*) s;
-    int* sp = this->sp;
-    while(sp > this->bp) {
-        printf("   Stack %02d: ", sp - this->bp);
-		
-		int x = sizeof(int) - 1;
-		for( ; x >= 0 ; x-- ) {
-			printf("%02x ", (*sp >> (x * 8)) & 0xFF);
-		}
-		
-		printf("\n");
-		
+    int* sp = this->sp - 1;
+    while(sp >= this->bp) {
+        printf("   Stack %02d: ", (int)(sp - this->bp));
+
+        int x = sizeof(int) - 1;
+        for( ; x >= 0 ; x-- ) {
+            printf("%02x ", (*sp >> (x * 8)) & 0xFF);
+        }
+
+        printf("\n");
+
         sp--;
     }
 }

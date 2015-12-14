@@ -67,8 +67,8 @@
     /**
      * Brainycake Stack functions
      */
-    void bc_push(Stack* s, char* a, int p);
-    void bc_pop(Stack* s, char* a, int p);
+    void bc_push(Stack* s, signed char* a, int p);
+    void bc_pop(Stack* s, signed char* a, int p);
 
     /**
      * Brainycake Registry Manipulation

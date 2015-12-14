@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <registry.h>
 #include <bcerrors.h>
@@ -256,7 +257,7 @@ Registry_doArithmetic(void* r, char op, signed int* r1, signed int* r2)
 {
     Registry* this = (Registry*) r;
     char isExtended = this->checkExt(r, r1);
-    char* charTgt = r1;
+    char* charTgt = (char*) r1;
     switch(op)
     {
         case '+':

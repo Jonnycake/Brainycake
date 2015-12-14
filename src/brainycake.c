@@ -100,12 +100,12 @@ bc_execute(char* code)
     char c;
     int loop_positions[MAX_LOOPS] = {0};
     unsigned char numloops = 0;
-    char* tape = calloc(sizeof(char), INIT_CELL_COUNT);
-    char** a;
+    signed char* tape = calloc(sizeof(char), INIT_CELL_COUNT);
+    signed char** a;
     int curCellCount = INIT_CELL_COUNT;
     int p = 0;
     int error = ERROR_NORMAL;
-    char* regArgv;
+    signed int* regArgv;
     int regArgc = 0;
 
     // Set our mode to execution
@@ -114,7 +114,7 @@ bc_execute(char* code)
     // Memory objects
     Registry registry;
     Registry_construct(&registry, (int*) 0, (int*) 0, (int*) 0, (int*)tape);
-    a = (char**)(&registry.extregisters[TAPE_PTR]);
+    a = (char**)(&(registry.extregisters[TAPE_PTR]));
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT);
 
@@ -271,6 +271,7 @@ bc_execute(char* code)
                                 case '|':
                                 case '^':
                                 case '!':
+                                    regArgv = (signed int*) 0;
                                     regArgc = 0;
                                     registry.performOperation(&registry, c, regArgv, regArgc);
                                     break;
@@ -372,7 +373,7 @@ bc_jump(char* code, int* codepos)
 }
 
 void
-bc_push(Stack* s, char* a, int p)
+bc_push(Stack* s, signed char* a, int p)
 {
     int v = 0;
     int x = sizeof(int) - 1;
@@ -382,7 +383,7 @@ bc_push(Stack* s, char* a, int p)
     s->push(s, v);
 }
 
-void bc_pop(Stack* s, char* a, int p)
+void bc_pop(Stack* s, signed char* a, int p)
 {
     int i = p;
     int x = sizeof(int) - 1;
@@ -399,11 +400,11 @@ void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
     printf("=======    Tape   ======\n");
     for( ; curCell < curCellCount ; curCell++) {
         if(tape[curCell] != (char) 0) {
-            printf("Cell #%*d: %x\n", 0 - (int)ceil(log10(curCellCount)), curCell + 1, tape[curCell]);
+            printf("Cell #%*d: %02x\n", 0 - (int)ceil(log10(curCellCount)), curCell + 1, tape[curCell]);
         }
     }
     curCell = (signed char*) r->extregisters[TAPE_PTR] - tape;
-    printf("Current Cell (%d/%d): %x\n", curCell + 1, curCellCount, tape[curCell]);
+    printf("Current Cell (%d/%d): %02x\n", curCell + 1, curCellCount, tape[curCell]);
     printf("======= Registers ======\n");
     r->printRegisters(r);
     printf("========   Stack   =====\n");
