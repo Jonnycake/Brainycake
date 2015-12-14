@@ -10,18 +10,35 @@ bin:
 build:
 	make lib
 	make bin
-clean:
-	rm *.o
 lib:
 	${CC} ${CCOPTS} -c -o brainycake.o src/brainycake.c
 	${CC} ${CCOPTS} -c -o stack.o src/stack.c
 	${CC} ${CCOPTS} -c -o registry.o src/registry.c
+install:
+	cp bcinterpreter ${BINDIR}
+	cp bcc ${BINDIR}
+
+#########
+# Tests #
+#########
+build_test:
+	make lib_test
+	make bin
+	./runtests.sh bin
+	make clean_test
 lib_test:
 	make lib
 	${CC} ${CCOPTS} -o registry_test lib_tests/registry_test.c registry.o
 	${CC} ${CCOPTS} -o stack_test lib_tests/stack_test.c stack.o
+
+############
+# Cleaning #
+############
+clean_build:
+	rm bcc
+	rm bcinterpreter
+clean:
+	rm *.o
 clean_test:
 	make clean
 	rm *_test
-install:
-	cp bcinterpreter ${BINDIR}
