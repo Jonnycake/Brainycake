@@ -119,7 +119,7 @@ ${a/b}       Divide register a by register b
 ${a+b}       Add register b to register a
 ${a-b}       Subtract register b from register a
 ${a%b}       Modulo division of a by b into a
-${a,b}       Copy value from register a to register b
+${a,b}       Copy value from register b to register a
 ${a&b}       Bitwise AND register a with register b
 ${a|b}       Bitwise OR register a with register b
 ${a^b}       Bitwise XOR register a with register b
