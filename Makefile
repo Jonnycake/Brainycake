@@ -41,5 +41,5 @@ clean_build:
 clean:
 	rm *.o
 clean_test:
-	make clean
 	rm *_test
+	make clean
