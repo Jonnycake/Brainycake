@@ -144,6 +144,26 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
 
         case ',':
             {
+                char reg1;
+                signed int* reg2;
+                if(argc != 0 && argc != 2) {
+                    error = ERROR_SYNTAX;
+                }
+                else if(argc == 0) {
+                    reg1 = '1';
+                    reg2 = this->translateRegister(r, 't');
+                }
+                else {
+                    reg1 = argv[0];
+                    reg2 = this->translateRegister(r, argv[1]);
+                }
+               if(error == ERROR_NORMAL) {
+                    this->setRegister(r, reg1, *reg2);
+               }
+            }
+            break;
+        case 's':
+            {
                 signed int* reg1;
                 signed int* reg2;
                 if(argc != 0 && argc != 2) {

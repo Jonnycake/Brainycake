@@ -103,7 +103,6 @@ bc_execute(char* code)
     signed char* tape = calloc(sizeof(char), INIT_CELL_COUNT);
     signed char** a;
     int curCellCount = INIT_CELL_COUNT;
-    int p = 0;
     int error = ERROR_NORMAL;
     signed int* regArgv;
     int regArgc = 0;
@@ -284,7 +283,7 @@ bc_execute(char* code)
                         break;
                     case 's':
                         regArgc = 0;
-                        registry.performOperation(&registry, ',', regArgv, regArgc);
+                        registry.performOperation(&registry, 's', regArgv, regArgc);
                         break;
                     case 'p':
                         {
