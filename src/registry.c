@@ -20,8 +20,8 @@ Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, sign
     this->checkExt = Registry_checkExt;
 
     // 5 General Purpose char Registers
-    this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(int)));
-    this->extregisters = (signed int*)&(this->registers[CHAR_REG_COUNT]);
+    this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(long int)));
+    this->extregisters = (signed long int*)&(this->registers[CHAR_REG_COUNT]);
     this->extregisters[BASE_PTR] = (signed int) bp;
     this->extregisters[STACK_PTR] = (signed int) sp;
     this->extregisters[INSTRUCTION_PTR] = (signed int) ip;
@@ -56,26 +56,11 @@ Registry_getRegisterValue(void* r, char reg, signed int* target)
     Registry* this = (Registry*) r;
     char* charTgt = (char*)target;
     int error = ERROR_NORMAL;
-    switch(reg)
-    {
-        case '0':
-            break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-            *charTgt = this->registers[reg - 48];
-            break;
-        case '5':
-        case '6':
-        case '7':
-        case '8':
-        case '9':
-            *target = this->extregisters[reg - 53];
-            break;
-        default:
-            error = ERROR_UNKNOWN;
-            break;
+    signed int* src = this->translateRegister(r, reg);
+    if(this->checkExt(r, src) == 0) {
+        *charTgt = (char) *src;
+    } else {
+        *target = (signed int) *src;
     }
     return error;
 }
@@ -371,7 +356,7 @@ Registry_printRegisters(void* r)
     }
 
     for(i = 0; i < EXT_REG_COUNT; i++) {
-        int x = sizeof(int) - 1;
+        int x = sizeof(long int) - 1;
         printf("Register %02d: ", CHAR_REG_COUNT + i);
         for( ; x >= 0 ; x-- ) {
             printf("%02x ", (this->extregisters[i] >> (x * 8)) & 0xFF);

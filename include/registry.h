@@ -12,7 +12,7 @@ typedef struct {
 
      // Properties
      unsigned char* registers;
-     signed int* extregisters;
+     signed long int* extregisters;
 
      // Methods
      int (*setRegister)(void*, char, int);

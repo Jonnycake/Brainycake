@@ -5,23 +5,23 @@
 void Stack_push(void* s, int val)
 {
     Stack* this = (Stack*) s;
-    *(this->sp) = val;
-    this->sp++;
+    **(this->spp) = val;
+    (*this->spp) += 1;
 }
 
 void Stack_pop(void* s, int* tgt)
 {
     Stack* this = (Stack*) s;
-    this->sp--;
-    *tgt = *(this->sp);
-    *(this->sp) = 0;
+    (*this->spp)--;
+    *tgt = **(this->spp);
 }
 void Stack_printStack(void* s)
 {
     Stack* this = (Stack*) s;
-    int* sp = this->sp - 1;
-    while(sp >= this->bp) {
-        printf("   Stack %02d: ", (int)(sp - this->bp));
+    int* sp = *(this->spp) - 1;
+    int* bp = *(this->bpp);
+    while(sp >= bp) {
+        printf("   Stack %02d (%x): ", (int)(sp - bp), sp);
 
         int x = sizeof(int) - 1;
         for( ; x >= 0 ; x-- ) {
@@ -33,14 +33,26 @@ void Stack_printStack(void* s)
         sp--;
     }
 }
-void Stack_construct(void* s, int max_height)
+void Stack_construct(void* s, int max_height, int*** spp, int*** bpp)
 {
     Stack* this = (Stack*) s;
     this->push = Stack_push;
     this->pop = Stack_pop;
     this->s = calloc(sizeof(int), max_height);
-    this->sp = this->s;
-    this->bp = this->s;
+    if(
+       (((int)spp) == 0)
+       || (((int)bpp) == 0)
+      ) {
+        this->spp = &(this->sp);
+        this->bpp = &(this->bp);
+        this->sp = this->s;
+        this->bp = this->s;
+    } else {
+        *spp = this->s;
+        *bpp = this->s;
+        this->spp = spp;
+        this->bpp = bpp;
+    }
     this->construct = Stack_construct;
     this->destruct = Stack_destruct;
     this->printStack = Stack_printStack;

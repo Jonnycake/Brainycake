@@ -113,9 +113,11 @@ bc_execute(char* code)
     // Memory objects
     Registry registry;
     Registry_construct(&registry, (int*) 0, (int*) 0, (int*) 0, (int*)tape);
-    a = (char**)(&(registry.extregisters[TAPE_PTR]));
+    registry.printRegisters(&registry);
     Stack s;
-    Stack_construct(&s, MAX_STACK_HEIGHT);
+    Stack_construct(&s, MAX_STACK_HEIGHT, &registry.extregisters[STACK_PTR], &registry.extregisters[BASE_PTR]);
+    registry.printRegisters(&registry);
+    a = (char**)(&(registry.extregisters[TAPE_PTR]));
 
     for( ; codepos <= codelen; c = code[codepos++]) {
         if(verbose + superverbose) {
@@ -355,6 +357,7 @@ bc_execute(char* code)
     }
     if(debug) {
         bc_debug(&s, &registry, tape, curCellCount);
+        bc_debug(&s, &registry, tape, curCellCount);
     }
     s.destruct(&s);
     registry.destruct(&registry);
@@ -379,6 +382,7 @@ bc_push(Stack* s, signed char* a, int p)
     for( ; x >= 0 ; x-- ) {
         v |= a[p++] << (x * 8);
     }
+    printf("asdf\n");
     s->push(s, v);
 }
 
@@ -399,6 +403,7 @@ void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
     printf("=======    Tape   ======\n");
     for( ; curCell < curCellCount ; curCell++) {
         if(tape[curCell] != (char) 0) {
+            // @todo Figure out why I'm doing ceil and log10 on curCellCount....I don't get it o.O
             printf("Cell #%*d: %02x\n", 0 - (int)ceil(log10(curCellCount)), curCell + 1, tape[curCell]);
         }
     }
@@ -408,4 +413,5 @@ void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
     r->printRegisters(r);
     printf("========   Stack   =====\n");
     s->printStack(s);
+    r->translateRegister((void*) r, 'b');
 }
