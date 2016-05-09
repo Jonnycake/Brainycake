@@ -1,10 +1,3 @@
-echo -e "\n\nThis is the registry test..."
-./registry_test
-read n
-
-echo -e "\n\nThis is the stack test..."
-./stack_test
-read n
 
 if [ $# -eq 1 ]
 then
@@ -19,5 +12,13 @@ then
             echo -e "\nEnd Time: `date`"
             read n
         done
+    else
+        echo -e "\n\nThis is the registry test..."
+        ./registry_test
+        read n
+
+        echo -e "\n\nThis is the stack test..."
+        ./stack_test
+        read n
     fi
 fi

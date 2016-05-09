@@ -61,6 +61,7 @@ Conditionals:
 {a=:code}   If a <= value at pointer, execute code
 {=a:code}   If a >= value at pointer, execute code
 {!a:code}   If a != value at pointer, execute code
+{a==:code}  If a == value at pointer, execute code
 
 Jumps:
 ------

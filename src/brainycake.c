@@ -18,6 +18,7 @@ char quiet = 0;
 char verbose = 0;
 char debug = 0;
 char superverbose = 0;
+char traditional = 0;
 
 /**
  * Preprocesses the main code file using bc_include() for includes
@@ -113,10 +114,8 @@ bc_execute(char* code)
     // Memory objects
     Registry registry;
     Registry_construct(&registry, (int*) 0, (int*) 0, (int*) 0, (int*)tape);
-    registry.printRegisters(&registry);
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT, &registry.extregisters[STACK_PTR], &registry.extregisters[BASE_PTR]);
-    registry.printRegisters(&registry);
     a = (char**)(&(registry.extregisters[TAPE_PTR]));
 
     for( ; codepos <= codelen; c = code[codepos++]) {
@@ -200,6 +199,10 @@ bc_execute(char* code)
                         }
                         break;
 
+                    // BEGIN NON-TRADITIONAL BRAINFUCK //
+                    default:
+                        if(!traditional) {
+                            switch(c) {
                     // Shortcuts
                     case '_':
                         *a = tape;
@@ -246,7 +249,7 @@ bc_execute(char* code)
                             switch(c)
                             {
                                 case '0':
-                                    printf("Error: Attempted to write to read-only register ($0).");
+                                    printf("Warning: Attempted to write to read-only register ($0).");
                                     error = ERROR_RO;
                                     break;
                                 case '1':
@@ -349,6 +352,10 @@ bc_execute(char* code)
                     case '!':
                         break;
                 }
+                break;
+                   }
+                }
+                // END NON-TRADITIONAL BRAINFUCK // 
         }
 
         if(verbose + superverbose) {

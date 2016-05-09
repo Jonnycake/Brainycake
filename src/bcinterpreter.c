@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     int error = ERROR_NORMAL;
     char* mainfile;
     char* code;
-    extern char verbose, superverbose, debug, quiet;
+    extern char verbose, superverbose, debug, quiet, traditional;
 
     if(argc == 1) {
         printf("Syntax: %s [options] <filename>\nFor more information type %s --help\n", argv[0], argv[0]);
@@ -54,11 +54,15 @@ int main(int argc, char** argv)
             printf("-v    Verbose mode on by default\n");
             printf("-vv   Verbose mode that can not be turned off\n");
             printf("-d    Debug mode (prints function names as they're called)\n");
+            printf("-q    Quiet mode (does not show warnings).\n");
+            printf("-bf   Traditional brainfuck mode\n");
+            printf("-f    Determine brainfuck vs Brainycake based on file extension\n");
             return 0;
         }
 
         mainfile = argv[argc - 1];
         if(argc > 2) {
+            char* extension;
             int x;
             for(x = 1; x < argc - 1; x++) {
                 if(!strcmp(argv[x], "-vv")) {
@@ -69,6 +73,11 @@ int main(int argc, char** argv)
                     debug = 1;
                 } else if(!strcmp(argv[x], "-q")) {
                     quiet = 1;
+                } else if(!strcmp(argv[x], "-bf")) {
+                    traditional = 1;
+                } else if(!strcmp(argv[x], "-f")) {
+                    extension = strstr(mainfile, ".bf");
+                    traditional = ((extension - mainfile) == (strlen(mainfile) - 3));
                 } else {
                     printf("Invalid argument: '%s'\n", argv[x]);
                     error = ERROR_UNKNOWN;
