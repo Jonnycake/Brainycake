@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     int error = ERROR_NORMAL;
     char* mainfile;
     char* code;
-    extern char verbose, superverbose, debug, quiet, traditional;
+    extern char verbose, superverbose, debug, quiet, traditional, optimize;
 
     if(argc == 1) {
         printf("Syntax: %s [options] <filename>\nFor more information type %s --help\n", argv[0], argv[0]);
@@ -57,6 +57,7 @@ int main(int argc, char** argv)
             printf("-q    Quiet mode (does not show warnings).\n");
             printf("-bf   Traditional brainfuck mode\n");
             printf("-f    Determine brainfuck vs Brainycake based on file extension\n");
+            printf("-O    Optimize Brainfuck code into brainycake code before executing\n");
             return 0;
         }
 
@@ -78,6 +79,8 @@ int main(int argc, char** argv)
                 } else if(!strcmp(argv[x], "-f")) {
                     extension = strstr(mainfile, ".bf");
                     traditional = ((extension - mainfile) == (strlen(mainfile) - 3));
+                } else if(!strcmp(argv[x], "-O")) {
+                    optimize = 1;
                 } else {
                     printf("Invalid argument: '%s'\n", argv[x]);
                     error = ERROR_UNKNOWN;
@@ -94,3 +97,51 @@ int main(int argc, char** argv)
     }
     return error;
 }
+
+/**
+ * Optimizes the Brainfuck code into Brainycake code (as it reduces
+ *   the number of steps.
+ *
+ * Example: ++++++++++ = |10|
+ */
+int
+bc_optimize(char** code, int codepos)
+{
+        printf("Optimizing...\n");
+        int x;
+        char optimize_mode = MODE_PREPROCESS;
+        printf("%d\n", codepos);
+        for(x = 0; x <= codepos; x++) {
+            switch(optimize_mode)
+            {
+                case MODE_COLLAPSE_MINUS:
+                case MODE_COLLAPSE_PLUS:
+                    {
+                        int y;
+                        int inc_count = (optimize_mode == MODE_COLLAPSE_PLUS) ? 1 : -1;
+                        for(y = x; y <= codepos; y++) {
+                            if((*code)[y] == '+') {
+                                inc_count++;
+                            } else if((*code)[y] == '-') {
+                                inc_count--;
+                            }
+                            else {
+                                break;
+                            }
+                        }
+                        optimize_mode = MODE_PREPROCESS;
+                        x = y;
+                        printf("%d - %d\n", x, inc_count);
+                       
+                    }
+                    break;
+                default:
+                    if((*code)[x] == '+' || (*code)[x] == '-') {
+                        optimize_mode = MODE_COLLAPSE_PLUS;
+                    }
+                    break;
+            }
+        }
+
+}
+

@@ -20,11 +20,12 @@ _            Go back to pointer 0
 &            Output the (null delimited) string at stack pointer
 =            Clear/initialize function/program stack
              (contextual)
-²            Square value at extended register 1
-³            Cube value at extended register 1
+2            Square value at extended register 1
+3            Cube value at extended register 1
 s            Switch value at pointer with value in register 1
 c            Clear screen (nasty system call to cls (windows) or 
              clear (linux))
+8            Seed using the value at the pointer casted to an int and NOT'ed
 *            Set value at pointer to random between 0-255
 ~            Perform bitwise not on the value at the pointer
 

@@ -19,6 +19,7 @@ char verbose = 0;
 char debug = 0;
 char superverbose = 0;
 char traditional = 0;
+char optimize = 0;
 
 /**
  * Preprocesses the main code file using bc_include() for includes
@@ -36,8 +37,7 @@ bc_preprocess(char* mainfile, char** code)
     struct stat filestat;
     stat(mainfile, &filestat);
     int size = filestat.st_size;
-    *code = calloc(sizeof(char), size+10);
-
+    *code = calloc(sizeof(char), size+1);
     mode = MODE_PREPROCESS;
 
     while( !error && (c = fgetc(f)) != EOF) {
@@ -83,6 +83,9 @@ bc_preprocess(char* mainfile, char** code)
                 }
         }
     }
+    if(optimize) {
+        bc_optimize(code, codepos);
+    }
     return error;
 }
 
@@ -107,7 +110,7 @@ bc_execute(char* code)
     int error = ERROR_NORMAL;
     signed int* regArgv;
     int regArgc = 0;
-
+    srand(time(NULL));
     // Set our mode to execution
     mode = MODE_EXEC;
 
@@ -349,13 +352,46 @@ bc_execute(char* code)
                         error = ERROR_PROG;
                         break;
                     case '?':
+                        {
+                            bc_debug(&s, &registry, tape, curCellCount);
+                            printf("----- Press Enter to Continue -----\n");
+                            char breakpoint_input;
+                            do {
+                                breakpoint_input = getchar();
+                                printf("%d\n", breakpoint_input);
+                            } while(breakpoint_input != '\n');
+                        }
                     case '!':
+                        break;
+
+                    // Extras
+                    case '~':
+                        **a = ~(**a);
+                        break;
+                    case '8':
+                        srand(~((int)**a));
+                        break;
+                    case '*':
+                        **a = (char) rand();
+                        break;
+
+                    // OS Dependent
+                    case 'c':
+                        #ifdef WINDOWS
+                          system("cls");
+                        #else
+                          system("clear");
+                        #endif
                         break;
                 }
                 break;
+
                    }
                 }
-                // END NON-TRADITIONAL BRAINFUCK // 
+                // END NON-TRADITIONAL BRAINFUCK //
+                break;
+            case MODE_EXIT:
+                 break;
         }
 
         if(verbose + superverbose) {
