@@ -131,7 +131,8 @@ ${"a}        Push the value in register a onto stack
 ${,a}        Copy the value from the tape pointer to reg-
              ister a
 ${a,}        Copy the value from register a to tape
-
+{x>}         Move tape pointer to the right x places
+{x<}         Move tape pointer to the left x places
 
 Fun Stuff:
 ----------
