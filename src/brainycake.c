@@ -425,7 +425,6 @@ bc_push(Stack* s, signed char* a, int p)
     for( ; x >= 0 ; x-- ) {
         v |= a[p++] << (x * 8);
     }
-    printf("asdf\n");
     s->push(s, v);
 }
 
