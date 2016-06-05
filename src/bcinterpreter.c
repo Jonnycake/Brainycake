@@ -44,11 +44,12 @@ int main(int argc, char** argv)
     int error = ERROR_NORMAL;
     char* mainfile;
     char* code;
-    extern char verbose, superverbose, debug, quiet, traditional;
+    extern char verbose, superverbose, debug, quiet, traditional, optimize;
 
     if(argc == 1) {
         printf("Syntax: %s [options] <filename>\nFor more information type %s --help\n", argv[0], argv[0]);
-    } else {
+    }
+    else {
         if(!strcmp(argv[1], "--help")) {
             printf("Options:\n");
             printf("-v    Verbose mode on by default\n");
@@ -57,6 +58,7 @@ int main(int argc, char** argv)
             printf("-q    Quiet mode (does not show warnings).\n");
             printf("-bf   Traditional brainfuck mode\n");
             printf("-f    Determine brainfuck vs Brainycake based on file extension\n");
+            printf("-O    Optimize Brainfuck code before executing (overrides traditional setting) - Experimental\n");
             return 0;
         }
 
@@ -67,18 +69,27 @@ int main(int argc, char** argv)
             for(x = 1; x < argc - 1; x++) {
                 if(!strcmp(argv[x], "-vv")) {
                     superverbose = 1;
-                } else if(!strcmp(argv[x], "-v")) {
+                }
+                else if(!strcmp(argv[x], "-v")) {
                     verbose = 1;
-                } else if(!strcmp(argv[x], "-d")) {
+                }
+                else if(!strcmp(argv[x], "-d")) {
                     debug = 1;
-                } else if(!strcmp(argv[x], "-q")) {
+                }
+                else if(!strcmp(argv[x], "-q")) {
                     quiet = 1;
-                } else if(!strcmp(argv[x], "-bf")) {
+                }
+                else if(!strcmp(argv[x], "-bf") && !optimize) {
                     traditional = 1;
-                } else if(!strcmp(argv[x], "-f")) {
+                }
+                else if(!strcmp(argv[x], "-f")) {
                     extension = strstr(mainfile, ".bf");
                     traditional = ((extension - mainfile) == (strlen(mainfile) - 3));
-                } else {
+                }
+                else if(!strcmp(argv[x], "-O")) {
+                    optimize = 1;
+                }
+                else {
                     printf("Invalid argument: '%s'\n", argv[x]);
                     error = ERROR_UNKNOWN;
                     break;
@@ -94,3 +105,65 @@ int main(int argc, char** argv)
     }
     return error;
 }
+
+/**
+ * Optimizes the Brainfuck code into Brainycake code (as it reduces
+ *   the number of steps.
+ *
+ * Example: ++++++++++ => |10|
+ */
+int
+bc_optimize(char** code, int codepos)
+{
+    extern char traditional;
+    traditional = 0;
+    printf("Optimizing...\n");
+    int x;
+    char optimize_mode = MODE_PREPROCESS;
+    for(x = 0; x <= codepos; x++) {
+        switch(optimize_mode)
+        {
+            case MODE_COLLAPSE_MINUS:
+            case MODE_COLLAPSE_PLUS:
+                {
+                    char* replacement = calloc(sizeof(char), 6);
+                    int y;
+                    int z;
+                    int inc_count = (optimize_mode == MODE_COLLAPSE_PLUS) ? 1 : -1;
+                    for(y = x; y <= codepos && ((*code)[y] == '+' || (*code)[y] == '-'); y++) {
+                        if((*code)[y] == '+') {
+                            inc_count++;
+                            (*code)[y] = 1;
+                        }
+                        else if((*code)[y] == '-') {
+                            inc_count--;
+                            (*code)[y] = 1;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    optimize_mode = MODE_PREPROCESS;
+                    sprintf(replacement, "|%d|", inc_count);
+                    for(z = 0; z < strlen(replacement); z++) {
+                        printf("'%c' Changed to '%c' \n", (*code)[x+z-1], replacement[z]);
+                        (*code)[x + z - 1] = replacement[z];
+                    }
+                    x = y;
+                }
+                break;
+            default:
+                if((*code)[x] == '+') {
+                    optimize_mode = MODE_COLLAPSE_PLUS;
+                }
+                else if((*code)[x] == '-') {
+                    optimize_mode = MODE_COLLAPSE_MINUS;
+                }
+                break;
+        }
+
+    }
+    for(x = 0; x<=codepos; x++) if((*code)[x] == 0) (*code)[x] = 1;
+    printf("%s\n", (*code));
+}
+

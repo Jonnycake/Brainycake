@@ -99,3 +99,8 @@ int main(int argc, char** argv)
     return 0;
 }
 
+int
+bc_optimize(char** code, int codepos)
+{
+    return 0;
+}

@@ -8,7 +8,7 @@ then
         for f in tests/*
         do
             echo -e "\n\nProcessing $f...`date`"
-            ./bcinterpreter $f
+            ./bcinterpreter -f $f
             echo -e "\nEnd Time: `date`"
             read n
         done

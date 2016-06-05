@@ -35,6 +35,10 @@
     #define MODE_REG_MANIP_DIV  18
     #define MODE_REG_MANIP_MOD  19
     #define MODE_REG_MANIP_SET  20
+    #define MODE_COLLAPSE_PLUS  21
+    #define MODE_COLLAPSE_MINUS 22
+    #define MODE_EXIT           23
+    #define MODE_OPTIMIZE       24
 
     /**
      * bc_preprocess will take in mainfile, look for syntax errors,
@@ -76,4 +80,8 @@
      int bc_reg_manip(Registry* r, char* manip_command);
 
      void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount);
+
+
+
+     int bc_optimize(char** code, int codepos);
 #endif
