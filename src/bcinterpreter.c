@@ -39,6 +39,7 @@
  *     - When we read in files, we should store without comments/whitespace to preserve memory
  */
 
+char verbose_optimization = 0;
 int main(int argc, char** argv)
 {
     int error = ERROR_NORMAL;
@@ -59,6 +60,7 @@ int main(int argc, char** argv)
             printf("-bf   Traditional brainfuck mode\n");
             printf("-f    Determine brainfuck vs Brainycake based on file extension\n");
             printf("-O    Optimize Brainfuck code before executing (overrides traditional setting) - Experimental\n");
+            printf("-Ov   Verbose optimization message (prints out the optimized code prior to executing\n");
             return 0;
         }
 
@@ -89,6 +91,9 @@ int main(int argc, char** argv)
                 else if(!strcmp(argv[x], "-O")) {
                     optimize = 1;
                 }
+                else if(!strcmp(argv[x], "-Ov")) {
+                    verbose_optimization = 1;
+                }
                 else {
                     printf("Invalid argument: '%s'\n", argv[x]);
                     error = ERROR_UNKNOWN;
@@ -115,11 +120,15 @@ int main(int argc, char** argv)
 int
 bc_optimize(char** code, int codepos)
 {
-    extern char traditional;
+    extern char quiet, verbose,traditional;
     traditional = 0;
-    printf("Optimizing...\n");
-    int x;
+    int x, optimized_codepos = 0;
     char optimize_mode = MODE_PREPROCESS;
+    char* optimized_code = calloc(sizeof(char), codepos*4);
+
+    if(!quiet) {
+        printf("Optimizing...");
+    }
     for(x = 0; x <= codepos; x++) {
         switch(optimize_mode)
         {
@@ -144,12 +153,21 @@ bc_optimize(char** code, int codepos)
                         }
                     }
                     optimize_mode = MODE_PREPROCESS;
-                    sprintf(replacement, "|%d|", inc_count);
-                    for(z = 0; z < strlen(replacement); z++) {
-                        printf("'%c' Changed to '%c' \n", (*code)[x+z-1], replacement[z]);
-                        (*code)[x + z - 1] = replacement[z];
+                    if(inc_count == 1) {
+                        replacement[0] = '+';
+                        replacement[1] = (*code)[y];
                     }
+                    else if(inc_count == -1) {
+                        replacement[0] = '-';
+                        replacement[1] = (*code)[y];
+                    }
+                    else {
+                        sprintf(replacement, "|%d|%c", inc_count, (*code)[y]);
+                    }
+                    strcat(optimized_code, replacement);
+                    optimized_codepos += strlen(replacement);
                     x = y;
+                    free(replacement);
                 }
                 break;
             default:
@@ -159,11 +177,21 @@ bc_optimize(char** code, int codepos)
                 else if((*code)[x] == '-') {
                     optimize_mode = MODE_COLLAPSE_MINUS;
                 }
+                else {
+                    optimized_code[optimized_codepos++] = (*code)[x];
+                }
                 break;
         }
 
     }
-    for(x = 0; x<=codepos; x++) if((*code)[x] == 0) (*code)[x] = 1;
-    printf("%s\n", (*code));
+    (*code) = realloc((*code), strlen(optimized_code) + 1);
+    strcpy((*code), optimized_code);
+    free(optimized_code);
+    if(!quiet) {
+        printf("Done.\n");
+    }
+    if(verbose_optimization) {
+        printf("Optimized code: %s\n", (*code));
+    }
 }
 
