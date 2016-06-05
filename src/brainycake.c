@@ -206,187 +206,187 @@ bc_execute(char* code)
                     default:
                         if(!traditional) {
                             switch(c) {
-                    // Shortcuts
-                    case '_':
-                        *a = tape;
-                        break;
-                    case '^':
-                        (**a) = 0;
-                        break;
-                    case '|':
-                        {
-                            char v[5] = {0};
-                            int count = 0;
-                            for( c = code[codepos++];
-                                 c != '|' && count < 4;
-                                 c = code[codepos++], count++
-                            ) {
-                                if((c >= 48 && c < 58) || (count == 0 && c == '-')) {
-                                    v[count] = c;
-                                } else {
-                                    error = ERROR_UNKNOWN;
+                                // Shortcuts
+                                case '_':
+                                    *a = tape;
                                     break;
-                                }
-                            }
-                            if(c == '|') {
-                                count = atoi(v);
-                                if(count > 255 && !quiet) {
-                                    printf("Warning: Number is greater than 255, there may be unexpected results.\n");
-                                }
-                                (**a) += atoi(v);
-                            } else {
-                                printf("Error: Requested number is out of bounds.\n");
-                        }
-                    }
-                    break;
-                    case '\\':
-                        mode = MODE_OUTPUT;
-                        break;
-
-                    // Registers
-                    case '$':
-                        c = code[codepos++];
-                        if( c == EOF ) {
-                            printf("Error: Scanned to end of file when attempting to identify a register.");
-                        } else {
-                            switch(c)
-                            {
-                                case '0':
-                                    printf("Warning: Attempted to write to read-only register ($0).");
-                                    error = ERROR_RO;
-                                    break;
-                                case '1':
-                                case '2':
-                                case '3':
-                                case '4':
-                                case '5':
-                                case '6':
-                                case '7':
-                                case '8':
-                                case '9':
-                                    registry.setRegister(&registry, c, (**a));
-                                    break;
-                                case '{':
-                                    mode = MODE_REG_MANIP;
-                                    break;
-                                case '+':
-                                case '-':
-                                case '/':
-                                case '*':
-                                case '%':
-                                case '&':
-                                case '|':
                                 case '^':
-                                case '!':
-                                    regArgv = (signed int*) 0;
+                                    (**a) = 0;
+                                    break;
+                                case '|':
+                                    {
+                                        char v[5] = {0};
+                                        int count = 0;
+                                        for( c = code[codepos++];
+                                             c != '|' && count < 4;
+                                             c = code[codepos++], count++
+                                        ) {
+                                            if((c >= 48 && c < 58) || (count == 0 && c == '-')) {
+                                                v[count] = c;
+                                            } else {
+                                                error = ERROR_UNKNOWN;
+                                                break;
+                                            }
+                                        }
+                                        if(c == '|') {
+                                            count = atoi(v);
+                                            if(count > 255 && !quiet) {
+                                                printf("Warning: Number is greater than 255, there may be unexpected results.\n");
+                                            }
+                                            (**a) += atoi(v);
+                                        } else {
+                                            printf("Error: Requested number is out of bounds.\n");
+                                    }
+                                }
+                                break;
+                                case '\\':
+                                    mode = MODE_OUTPUT;
+                                    break;
+
+                                // Registers
+                                case '$':
+                                    c = code[codepos++];
+                                    if( c == EOF ) {
+                                        printf("Error: Scanned to end of file when attempting to identify a register.");
+                                    } else {
+                                        switch(c)
+                                        {
+                                            case '0':
+                                                printf("Warning: Attempted to write to read-only register ($0).");
+                                                error = ERROR_RO;
+                                                break;
+                                            case '1':
+                                            case '2':
+                                            case '3':
+                                            case '4':
+                                            case '5':
+                                            case '6':
+                                            case '7':
+                                            case '8':
+                                            case '9':
+                                                registry.setRegister(&registry, c, (**a));
+                                                break;
+                                            case '{':
+                                                mode = MODE_REG_MANIP;
+                                                break;
+                                            case '+':
+                                            case '-':
+                                            case '/':
+                                            case '*':
+                                            case '%':
+                                            case '&':
+                                            case '|':
+                                            case '^':
+                                            case '!':
+                                                regArgv = (signed int*) 0;
+                                                regArgc = 0;
+                                                registry.performOperation(&registry, c, regArgv, regArgc);
+                                                break;
+                                            default:
+                                                printf("Syntax error: Invalid register operation '%c'.\n", c);
+                                                error = ERROR_BADOP;
+                                                break;
+                                        }
+                                    }
+                                    break;
+                                case 's':
                                     regArgc = 0;
-                                    registry.performOperation(&registry, c, regArgv, regArgc);
+                                    registry.performOperation(&registry, 's', regArgv, regArgc);
                                     break;
-                                default:
-                                    printf("Syntax error: Invalid register operation '%c'.\n", c);
-                                    error = ERROR_BADOP;
+                                case 'p':
+                                    {
+                                     int val;
+                                     c = code[codepos++];
+                                     if( c == EOF ) {
+                                         printf("Error: Scanned to end of file when attempting to identify register to print.");
+                                     } else {
+                                         switch(c)
+                                         {
+                                             case '0':
+                                                 printf("NULL");
+                                                 break;
+                                             case '1':
+                                             case '2':
+                                             case '3':
+                                             case '4':
+                                                 error = registry.getRegisterValue(&registry, c, &val);
+                                                 printf("%c", val);
+                                                 break;
+                                             case '5':
+                                             case '6':
+                                             case '7':
+                                             case '8':
+                                             case '9':
+                                                 error = registry.getRegisterValue(&registry, c, &val);
+                                                 printf("%d", val);
+                                                 break;
+                                             default:
+                                                 printf("Error: Unknown register '%c'.", c);
+                                                 error = ERROR_UNKREG;
+                                                 break;
+                                         }
+                                     }
+                                    }
                                     break;
-                            }
+
+                                // Stack
+                                case '"':
+                                    bc_push(&s, tape, (*a) - tape);
+                                    break;
+
+                                case '\'':
+                                    bc_pop(&s, tape, (*a) - tape);
+                                    break;
+
+                                // Debugging
+                                case 'h':
+                                    printf("0x%x", ((**a) >= 0) ? (**a) : 256 + (**a));
+                                    break;
+                                case 'd':
+                                    printf("%d", ((**a) >= 0) ? (**a) : 256 + (**a));
+                                    break;
+                                case 'v':
+                                    verbose = (verbose) ? 0 : 1;
+                                    break;
+                                case '@':
+                                    error = ERROR_PROG;
+                                    break;
+                                case '?':
+                                    {
+                                        bc_debug(&s, &registry, tape, curCellCount);
+                                        printf("----- Press Enter to Continue -----\n");
+                                        char breakpoint_input;
+                                        do {
+                                            breakpoint_input = getchar();
+                                            printf("%d\n", breakpoint_input);
+                                        } while(breakpoint_input != '\n');
+                                    }
+                                case '!':
+                                    break;
+
+                                // Extras
+                                case '~':
+                                    **a = ~(**a);
+                                    break;
+                                case '8':
+                                    srand(~((int)**a));
+                                    break;
+                                case '*':
+                                    **a = (char) rand();
+                                    break;
+
+                                // OS Dependent
+                                case 'c':
+                                    #ifdef WINDOWS
+                                      system("cls");
+                                    #else
+                                      system("clear");
+                                    #endif
+                                    break;
                         }
-                        break;
-                    case 's':
-                        regArgc = 0;
-                        registry.performOperation(&registry, 's', regArgv, regArgc);
-                        break;
-                    case 'p':
-                        {
-                         int val;
-                         c = code[codepos++];
-                         if( c == EOF ) {
-                             printf("Error: Scanned to end of file when attempting to identify register to print.");
-                         } else {
-                             switch(c)
-                             {
-                                 case '0':
-                                     printf("NULL");
-                                     break;
-                                 case '1':
-                                 case '2':
-                                 case '3':
-                                 case '4':
-                                     error = registry.getRegisterValue(&registry, c, &val);
-                                     printf("%c", val);
-                                     break;
-                                 case '5':
-                                 case '6':
-                                 case '7':
-                                 case '8':
-                                 case '9':
-                                     error = registry.getRegisterValue(&registry, c, &val);
-                                     printf("%d", val);
-                                     break;
-                                 default:
-                                     printf("Error: Unknown register '%c'.", c);
-                                     error = ERROR_UNKREG;
-                                     break;
-                             }
-                         }
-                        }
-                        break;
-
-                    // Stack
-                    case '"':
-                        bc_push(&s, tape, (*a) - tape);
-                        break;
-
-                    case '\'':
-                        bc_pop(&s, tape, (*a) - tape);
-                        break;
-
-                    // Debugging
-                    case 'h':
-                        printf("0x%x", ((**a) >= 0) ? (**a) : 256 + (**a));
-                        break;
-                    case 'd':
-                        printf("%d", ((**a) >= 0) ? (**a) : 256 + (**a));
-                        break;
-                    case 'v':
-                        verbose = (verbose) ? 0 : 1;
-                        break;
-                    case '@':
-                        error = ERROR_PROG;
-                        break;
-                    case '?':
-                        {
-                            bc_debug(&s, &registry, tape, curCellCount);
-                            printf("----- Press Enter to Continue -----\n");
-                            char breakpoint_input;
-                            do {
-                                breakpoint_input = getchar();
-                                printf("%d\n", breakpoint_input);
-                            } while(breakpoint_input != '\n');
-                        }
-                    case '!':
-                        break;
-
-                    // Extras
-                    case '~':
-                        **a = ~(**a);
-                        break;
-                    case '8':
-                        srand(~((int)**a));
-                        break;
-                    case '*':
-                        **a = (char) rand();
-                        break;
-
-                    // OS Dependent
-                    case 'c':
-                        #ifdef WINDOWS
-                          system("cls");
-                        #else
-                          system("clear");
-                        #endif
-                        break;
-                }
-                break;
 
                    }
+                   break;
                 }
                 // END NON-TRADITIONAL BRAINFUCK //
                 break;
