@@ -213,6 +213,34 @@ bc_execute(char* code)
                                 case '^':
                                     (**a) = 0;
                                     break;
+                                case '{':
+                                    // @todo Fix this so that it makes more sense with the tape pointer movement
+                                    {
+                                        char v[5] = {0};
+                                        int count = 0;
+                                        for( c = code[codepos++];
+                                             c != '}' && count < 4;
+
+                                             c = code[codepos++], count++
+                                        ) {
+                                            if((c >= 48 && c < 58) || (count == 0 && c == '-')) {
+                                                v[count] = c;
+                                            } else {
+                                                error = ERROR_UNKNOWN;
+                                                break;
+                                            }
+                                        }
+                                        if(c == '}') {
+                                            count = atoi(v);
+                                            if(count > 255 && !quiet) {
+                                                printf("Warning: Number is greater than 255, there may be unexpected results.\n");
+                                            }
+                                            (*a) += atoi(v);
+                                        } else {
+                                            printf("Error: Requested number is out of bounds.\n");
+                                        }
+                                    }
+                                    break;
                                 case '|':
                                     {
                                         char v[5] = {0};
@@ -236,9 +264,9 @@ bc_execute(char* code)
                                             (**a) += atoi(v);
                                         } else {
                                             printf("Error: Requested number is out of bounds.\n");
+                                        }
                                     }
-                                }
-                                break;
+                                    break;
                                 case '\\':
                                     mode = MODE_OUTPUT;
                                     break;
