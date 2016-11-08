@@ -143,7 +143,21 @@ bc_execute(char* code)
             case MODE_REG_MANIP_NOT:
             case MODE_REG_MANIP_DONE:
             case MODE_REG_MANIP:
-                //error = bc_reg_manip(&registry);
+                {
+                    char reg_cmd[3] = {'\0'};
+                    int  i = 0;
+                    codepos--;
+                    for( ; (c = code[codepos++]) != '}' && i < 3 ; i++) {
+                        reg_cmd[i] = c;
+                    }
+                    if(c != '}') {
+                        error = ERROR_SYNTAX;
+                    }
+                    else {
+                        error = bc_reg_manip(&registry, reg_cmd);
+                    }
+                    mode = MODE_EXEC;
+                }
                 break;
             case MODE_EXEC:
                 switch(c)
@@ -410,6 +424,62 @@ bc_execute(char* code)
 int
 bc_reg_manip(Registry* r, char* manip_command)
 {
+    signed int argv[2] = {0, 0};
+    int argc = 0;
+    char op, reg1, reg2 = '\0';
+
+    // Parse out the information we need
+    switch(manip_command[0])
+    {
+        case '!':
+        case '\'':
+        case '"':
+        case ',':
+            op = manip_command[0];
+            reg1 = manip_command[1];
+            break;
+        default:
+            reg1 = manip_command[0];
+            op = manip_command[1];
+            reg2 = manip_command[2];
+            break;
+    }
+
+
+    // Execute the operation
+    switch(op)
+    {
+        case '\'':
+        case '"':
+            printf("Not implemented yet....");
+            return 0;
+        case '!':
+            if(reg2 != '\0') return ERROR_BADOP;
+            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
+            if(reg1 == '0') return ERROR_RO;
+            argc = 1;
+            break;
+        case ',':
+        case '*':
+        case '/':
+        case '+':
+        case '-':
+        case '%':
+        case '|':
+        case '^':
+            if(reg2 == '\0') return ERROR_BADOP;
+            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
+            if(reg1 == '0') return ERROR_RO;
+            argc = 2;
+            break;
+        default:
+            return ERROR_BADOP;
+    }
+
+    argv[0] = reg1;
+    argv[1] = reg2;
+
+    (*r).performOperation(r, op, argv, argc);
 }
 
 void
