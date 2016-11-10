@@ -122,7 +122,7 @@ bc_execute(char* code)
     a = (char**)(&(registry.extregisters[TAPE_PTR]));
 
     for( ; codepos <= codelen; c = code[codepos++]) {
-        if(verbose + superverbose) {
+        if(verbose && superverbose) {
             bc_debug(&s, &registry, tape, curCellCount);
         }
         switch(mode)
@@ -134,14 +134,6 @@ bc_execute(char* code)
                     putchar(c);
                 }
                 break;
-            case MODE_REG_MANIP_ADD:
-            case MODE_REG_MANIP_SUB:
-            case MODE_REG_MANIP_MOD:
-            case MODE_REG_MANIP_MUL:
-            case MODE_REG_MANIP_DIV:
-            case MODE_REG_MANIP_SET:
-            case MODE_REG_MANIP_NOT:
-            case MODE_REG_MANIP_DONE:
             case MODE_REG_MANIP:
                 {
                     char reg_cmd[3] = {'\0'};
@@ -154,7 +146,7 @@ bc_execute(char* code)
                         error = ERROR_SYNTAX;
                     }
                     else {
-                        error = bc_reg_manip(&registry, reg_cmd);
+                        error = bc_reg_manip(&registry, &s, reg_cmd);
                     }
                     mode = MODE_EXEC;
                 }
@@ -412,8 +404,7 @@ bc_execute(char* code)
             bc_debug(&s, &registry, tape, curCellCount);
         }
     }
-    if(debug) {
-        bc_debug(&s, &registry, tape, curCellCount);
+    if(debug && !verbose && !superverbose) {
         bc_debug(&s, &registry, tape, curCellCount);
     }
     s.destruct(&s);
@@ -422,9 +413,9 @@ bc_execute(char* code)
 }
 
 int
-bc_reg_manip(Registry* r, char* manip_command)
+bc_reg_manip(Registry* r, Stack* s, char* manip_command)
 {
-    signed int argv[2] = {0, 0};
+    signed int argv[3] = {0, 0};
     int argc = 0;
     char op, reg1, reg2 = '\0';
 
@@ -434,9 +425,13 @@ bc_reg_manip(Registry* r, char* manip_command)
         case '!':
         case '\'':
         case '"':
-        case ',':
             op = manip_command[0];
             reg1 = manip_command[1];
+            break;
+        case ',':
+            op = manip_command[0];
+            reg1 = '\0';
+            reg2 = manip_command[1];
             break;
         default:
             reg1 = manip_command[0];
@@ -450,9 +445,13 @@ bc_reg_manip(Registry* r, char* manip_command)
     switch(op)
     {
         case '\'':
+            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
+            bc_pop(s, (char*) (*r).translateRegister(r, reg1), 0);
+            break;
         case '"':
-            printf("Not implemented yet....");
-            return 0;
+            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
+            bc_push(s, (char*) (*r).translateRegister(r, reg1), 0);
+            break;
         case '!':
             if(reg2 != '\0') return ERROR_BADOP;
             if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
@@ -467,10 +466,12 @@ bc_reg_manip(Registry* r, char* manip_command)
         case '%':
         case '|':
         case '^':
-            if(reg2 == '\0') return ERROR_BADOP;
-            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
-            if(reg1 == '0') return ERROR_RO;
             argc = 2;
+            if(reg2 == '\0') reg2 = 't';
+            if(reg1 == '\0') reg1 = 't';
+            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b' || reg1 == '@')) return ERROR_UNKREG;
+            if(reg2 == '\0' || !((reg2 > 48 && reg2 < 58) || reg2 == 'i' || reg2 == 't' || reg2 == 's' || reg2 == 'b' || reg2 == '@')) return ERROR_UNKREG;
+            if(reg1 == '0' || reg2 == '0') return ERROR_RO;
             break;
         default:
             return ERROR_BADOP;
@@ -479,7 +480,7 @@ bc_reg_manip(Registry* r, char* manip_command)
     argv[0] = reg1;
     argv[1] = reg2;
 
-    (*r).performOperation(r, op, argv, argc);
+    return (*r).performOperation(r, op, argv, argc);
 }
 
 void

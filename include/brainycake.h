@@ -2,13 +2,14 @@
     #include <bcerrors.h>
     #include <stack.h>
     #include <registry.h>
+
     // Don't load this again
     #define BRAINYCAKE 1
 
     // Memory settings
     #define INIT_CELL_COUNT   64        // Number of cells to initalize for basic array
     #define MAX_CELL_COUNT    256       // Maximum number of cells to allow
-    #define MAX_STACK_HEIGHT  1024      // Maximum height stack can get to 
+    #define MAX_STACK_HEIGHT  1024      // Maximum height stack can get to
     #define STACK_WIDTH       4         // Number of bytes per level of the stack
     #define MAX_LOOPS         32        // Maximum number of nested loops
     #define MAX_FILENAME      255       // Maximum length of a filename
@@ -27,18 +28,11 @@
     #define MODE_INCLUDE        10
     #define MODE_REG_MANIP      11
     #define MODE_COND_EVAL      12
-    #define MODE_REG_MANIP_DONE 13
-    #define MODE_REG_MANIP_NOT  14
-    #define MODE_REG_MANIP_ADD  15
-    #define MODE_REG_MANIP_SUB  16
-    #define MODE_REG_MANIP_MUL  17
-    #define MODE_REG_MANIP_DIV  18
-    #define MODE_REG_MANIP_MOD  19
-    #define MODE_REG_MANIP_SET  20
-    #define MODE_COLLAPSE_PLUS  21
-    #define MODE_COLLAPSE_MINUS 22
-    #define MODE_EXIT           23
-    #define MODE_OPTIMIZE       24
+    #define MODE_COLLAPSE_PLUS  13
+    #define MODE_COLLAPSE_MINUS 14
+    #define MODE_EXIT           15
+    #define MODE_OPTIMIZE       16
+    #define MODE_ERROR          17
 
     /**
      * bc_preprocess will take in mainfile, look for syntax errors,
@@ -77,7 +71,7 @@
     /**
      * Brainycake Registry Manipulation
      */
-     int bc_reg_manip(Registry* r, char* manip_command);
+     int bc_reg_manip(Registry* r, Stack* s, char* manip_command);
 
      void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount);
 

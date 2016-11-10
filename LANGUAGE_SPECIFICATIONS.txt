@@ -95,15 +95,6 @@ $6           Put value at pointer into extended register 2
 $7           Put value at pointer into extended register 3
 $8           Put value at pointer into extended register 4
 $9           Put value at pointer into extended register 5
-$b           Put value at pointer into base pointer (not
-             general purpose)
-$s           Put value at pointer into stack pointer (not
-             general purpose)
-$i           Put value at pointer into instruction pointer
-             (not general purpose) - essentially implements
-             function return
-$t           Put value at pointer into tape pointer (basic
-             -ally an absolute jump)
 $+           Add value at pointer to register 1
 $-           Subtract value at pointer from register 1
 $*           Multiply value at pointer to register 1
@@ -115,7 +106,7 @@ $^           Bitwise XOR register 1 with pointer
 $!           Bitwise NOT on register 1
 $p{a}        Associate register a with the pointer (copies
              current value of pointer to register a, any
-             changes to a are made to p)
+             changes to register a are made to p)
 ${a*b}       Multiply register a times register b
 ${a/b}       Divide register a by register b
 ${a+b}       Add register b to register a
@@ -128,9 +119,10 @@ ${a^b}       Bitwise XOR register a with register b
 ${!a}        Bitwise NOT register a
 ${'a}        Pop the value off the stack into register a
 ${"a}        Push the value in register a onto stack
-${,a}        Copy the value from the tape pointer to reg-
+${,a}        Copy the value from register a to tape
+${a,}        Copy the value from the tape pointer to reg-
              ister a
-${a,}        Copy the value from register a to tape
+
 
 
 Fun Stuff:

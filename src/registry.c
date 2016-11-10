@@ -220,6 +220,9 @@ Registry_translateRegister(void* r, char regNum)
         case 't':
             reg = (signed int*) this->extregisters[TAPE_PTR];
             break;
+	case '@':
+            reg = (signed int*) &(this->extregisters[TAPE_PTR]);
+            break;
         case 'i':
             reg = (signed int*) this->extregisters[INSTRUCTION_PTR];
             break;
