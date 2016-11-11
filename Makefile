@@ -1,5 +1,5 @@
 CC = "gcc"
-CCOPTS = -Wall -I./include/
+CCOPTS = -Wall -Wextra -I./include/
 BINDIR = /usr/bin/
 LIBS = -lm
 all:

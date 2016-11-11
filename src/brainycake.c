@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <math.h>
+#include <signal.h>
 
 #define MIN_LOAD 1
 #include <brainycake.h>
@@ -20,6 +21,7 @@ char debug = 0;
 char superverbose = 0;
 char traditional = 0;
 char optimize = 0;
+char gdb = 0;
 
 /**
  * Preprocesses the main code file using bc_include() for includes
@@ -366,6 +368,9 @@ bc_execute(char* code)
                                             breakpoint_input = getchar();
                                             printf("%d\n", breakpoint_input);
                                         } while(breakpoint_input != '\n');
+                                        if(gdb) {
+                                            raise(SIGINT);
+                                        }
                                     }
                                 case '!':
                                     break;
@@ -450,7 +455,7 @@ bc_reg_manip(Registry* r, Stack* s, char* manip_command)
             break;
         case '"':
             if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
-            bc_push(s, (char*) (*r).translateRegister(r, reg1), 0);
+            bc_push(s, (signed char*) (*r).translateRegister(r, reg1), 0);
             break;
         case '!':
             if(reg2 != '\0') return ERROR_BADOP;
@@ -494,7 +499,7 @@ bc_push(Stack* s, signed char* a, int p)
     int v = 0;
     int x = sizeof(int) - 1;
     for( ; x >= 0 ; x-- ) {
-        v |= a[p++] << (x * 8);
+        v |= (a[p++] << (x * 8)) & (0xff << (x*8));
     }
     s->push(s, v);
 }
