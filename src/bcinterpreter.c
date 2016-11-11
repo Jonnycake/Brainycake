@@ -107,6 +107,7 @@ int main(int argc, char** argv)
             }
         }
     }
+    free(code);
     return error;
 }
 
@@ -154,6 +155,7 @@ bc_optimize(char** code, int codepos)
                         (*code)[x + z - 1] = replacement[z];
                     }
                     x = y;
+                    free(replacement);
                 }
                 break;
             default:

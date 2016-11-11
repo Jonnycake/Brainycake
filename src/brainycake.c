@@ -414,6 +414,7 @@ bc_execute(char* code)
     }
     s.destruct(&s);
     registry.destruct(&registry);
+    free(tape);
     return error;
 }
 
