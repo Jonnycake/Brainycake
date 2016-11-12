@@ -566,6 +566,42 @@ bc_execute(char* code)
                                     **a = (char) rand();
                                     break;
 
+                                // If it is a j
+                                case 'j':
+                                    {
+                                        // Keep track of the maximum number of digits
+                                        int max_digits = ceil(log10(codelen));
+
+                                        // Hold the jump value
+                                        int jv = 0;
+
+                                        // Allocate an array to hold the highest number of chars rquired by code length
+                                        char v[max_digits + 1];
+
+                                        // Increment instruction pointer and retrieve the next char
+                                        *ip = *ip + 1;
+                                        c = **ip;
+
+                                        int i = 0;
+
+                                        // Determine what to do based on the char
+                                        switch(c)
+                                        {
+                                            case '{':
+                                                // @todo Handle error conditions
+                                                for( *ip = *ip + 1, c = **ip; **ip != '}' && **ip != EOF && **ip < (code + codelen) && i < max_digits; *ip = *ip + 1, c = **ip, i++) {
+                                                    v[i] = **ip;
+                                                }
+                                                while(++i <= max_digits) v[i] = '\0';
+                                                *ip = code + atoi(v) - 1;
+                                                break;
+                                            case '[':
+                                                // @todo Implement
+                                                break;
+                                        }
+                                     }
+                                     break;
+
                                 // OS Dependent
                                 // If it is a c
                                 case 'c':
