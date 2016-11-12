@@ -97,6 +97,7 @@ bc_include(char* file, char** functions, char** code, int cursize)
     FILE* f;
 }
 
+// bc_execute - Execute brainycake code
 int
 bc_execute(char* code)
 {
@@ -359,17 +360,26 @@ bc_execute(char* code)
                                 // Registers
                                 // If it is a $
                                 case '$':
+                                    // Increment the instruction pointer and get the next char
                                     *ip = *ip + 1;
                                     c = **ip;
+
+                                    // If we're at the end of the filee
                                     if( c == EOF ) {
+                                        // Error out
                                         printf("Error: Scanned to end of file when attempting to identify a register.");
-                                    } else {
+                                    }
+                                    // Otherwise
+                                    else {
+                                        // Determine what to do based on the char
                                         switch(c)
                                         {
+                                            // If it's a 0
                                             case '0':
-                                                printf("Warning: Attempted to write to read-only register ($0).");
+                                                // Set error to ERROR_RO
                                                 error = ERROR_RO;
                                                 break;
+                                            // If it's 1-9
                                             case '1':
                                             case '2':
                                             case '3':
@@ -379,11 +389,15 @@ bc_execute(char* code)
                                             case '7':
                                             case '8':
                                             case '9':
+                                                // Set the specified register to the value at the tape pointer
                                                 registry.setRegister(&registry, c, (**a));
                                                 break;
+                                            // If it's a {
                                             case '{':
+                                                // Set us to register manipulation mode
                                                 mode = MODE_REG_MANIP;
                                                 break;
+                                            // If it's +, -, /, *, %, &, |, ^, or !
                                             case '+':
                                             case '-':
                                             case '/':
@@ -393,12 +407,14 @@ bc_execute(char* code)
                                             case '|':
                                             case '^':
                                             case '!':
+                                                // Perform the operation with a default register
                                                 regArgv = (signed int*) 0;
                                                 regArgc = 0;
                                                 registry.performOperation(&registry, c, regArgv, regArgc);
                                                 break;
+                                            // Otherwise
                                             default:
-                                                printf("Syntax error: Invalid register operation '%c'.\n", c);
+                                                // Set error to ERROR_BADOP
                                                 error = ERROR_BADOP;
                                                 break;
                                         }
@@ -407,6 +423,8 @@ bc_execute(char* code)
 
                                 // If it is a s
                                 case 's':
+                                    // Perform a switch operation with the default registers
+                                    regArgv = (signed int*) 0;
                                     regArgc = 0;
                                     registry.performOperation(&registry, 's', regArgv, regArgc);
                                     break;
@@ -414,38 +432,53 @@ bc_execute(char* code)
                                 // If it is a p
                                 case 'p':
                                     {
-                                     int val;
-                                     *ip = *ip + 1;
-                                     c = **ip;
-                                     if( c == EOF ) {
-                                         printf("Error: Scanned to end of file when attempting to identify register to print.");
-                                     } else {
-                                         switch(c)
-                                         {
-                                             case '0':
-                                                 printf("NULL");
-                                                 break;
-                                             case '1':
-                                             case '2':
-                                             case '3':
-                                             case '4':
-                                                 error = registry.getRegisterValue(&registry, c, &val);
-                                                 printf("%c", val);
-                                                 break;
-                                             case '5':
-                                             case '6':
-                                             case '7':
-                                             case '8':
-                                             case '9':
-                                                 error = registry.getRegisterValue(&registry, c, &val);
-                                                 printf("%d", val);
-                                                 break;
-                                             default:
-                                                 printf("Error: Unknown register '%c'.", c);
-                                                 error = ERROR_UNKREG;
-                                                 break;
-                                         }
-                                     }
+                                        int val;
+                                        // Increement the instruction pointer and get the next char
+                                        *ip = *ip + 1;
+                                        c = **ip;
+
+                                        // If we're at the end of the file
+                                        if( c == EOF ) {
+                                            // Error out
+                                            printf("Error: Scanned to end of file when attempting to identify register to print.");
+                                        }
+                                        // Otherwise
+                                        else {
+                                            // Determine what to do baseed on the char
+                                            switch(c)
+                                            {
+                                                // If it's a 0
+                                                case '0':
+                                                    // Output NULL
+                                                    printf("NULL");
+                                                    break;
+                                                // If it's 1-4
+                                                case '1':
+                                                case '2':
+                                                case '3':
+                                                case '4':
+                                                    // Output the value of the specified register as a char
+                                                    error = registry.getRegisterValue(&registry, c, &val);
+                                                    printf("%c", val);
+                                                    break;
+                                                case '5':
+                                                case '6':
+                                                case '7':
+                                                case '8':
+                                                // If it's 5-9
+                                                case '9':
+                                                    // Output the specified register as an integer
+                                                    error = registry.getRegisterValue(&registry, c, &val);
+                                                    printf("%d", val);
+                                                    break;
+
+                                                // Otherwise
+                                                default:
+                                                    // Set error to ERROR_UNKREG
+                                                    error = ERROR_UNKREG;
+                                                    break;
+                                            }
+                                        }
                                     }
                                     break;
 
@@ -490,14 +523,20 @@ bc_execute(char* code)
                                 // If it is a ?
                                 case '?':
                                     {
+                                        // Output debug information
                                         bc_debug(&s, &registry, tape, curCellCount);
                                         printf("----- Press Enter to Continue -----\n");
                                         char breakpoint_input;
+
+                                        // Wait for the user to hit enter to continue
                                         do {
                                             breakpoint_input = getchar();
                                             printf("%d\n", breakpoint_input);
                                         } while(breakpoint_input != '\n');
+
+                                        // If gdb is enabled
                                         if(gdb) {
+                                            // Emit the SIGINT signal
                                             raise(SIGINT);
                                         }
                                     }
