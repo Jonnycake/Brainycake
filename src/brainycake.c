@@ -183,7 +183,7 @@ bc_execute(char* code)
             // If we're executing commands
             case MODE_EXEC:
                 // Determine what to do based on the char
-                switch((char)c)
+                switch((c)
                 {
                     // Traditional brainfuck
                     // If it is a >
