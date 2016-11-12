@@ -115,6 +115,7 @@ bc_execute(char* code)
     int regArgc = 0;
     srand(time(NULL));
     char** ip;
+    char step_by_step = 0;
 
     // Set our mode to execution
     mode = MODE_EXEC;
@@ -136,7 +137,7 @@ bc_execute(char* code)
     //  After each loop, increase the instruction pointer by one and set c again
     for( c = **ip ; (*ip - code) <= codelen; *ip = *ip+1, c = **ip) {
         // If we're running in verbose or superverbose mode
-        if(verbose + superverbose) {
+        if(verbose + superverbose && !step_by_step) {
             // Output debug information
             bc_debug(&s, &registry, tape, curCellCount);
         }
@@ -184,7 +185,7 @@ bc_execute(char* code)
             // If we're executing commands
             case MODE_EXEC:
                 // Determine what to do based on the char
-                switch((c)
+                switch(c)
                 {
                     // Traditional brainfuck
                     // If it is a >
@@ -543,7 +544,7 @@ bc_execute(char* code)
 
                                 // If it is a !
                                 case '!':
-                                    // @todo Implement
+                                    step_by_step = !step_by_step;
                                     break;
 
                                 // Extras
@@ -592,15 +593,31 @@ bc_execute(char* code)
                  break;
         }
 
+
+        if(step_by_step) {
+            {
+                // Output debug information
+                bc_debug(&s, &registry, tape, curCellCount);
+                printf("----- Press Enter to Continue -----\n");
+                char breakpoint_input;
+
+                // Wait for the user to hit enter to continue
+                do {
+                    breakpoint_input = getchar();
+                    printf("%d\n", breakpoint_input);
+                } while(breakpoint_input != '\n');
+            }
+        }
+
         // If we're in verbose or superverbose mode
-        if(verbose + superverbose) {
+        if(verbose + superverbose && !step_by_step) {
             // Output debug information
             bc_debug(&s, &registry, tape, curCellCount);
         }
     }
 
     // If we're in debug mode and not in verbose or superverbose mode 
-    if(debug && !verbose && !superverbose) {
+    if(debug && !verbose && !superverbose && !step_by_step) {
         // Output debug information
         bc_debug(&s, &registry, tape, curCellCount);
     }
