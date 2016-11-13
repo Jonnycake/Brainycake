@@ -541,6 +541,7 @@ bc_execute(char* code)
                                             raise(SIGINT);
                                         }
                                     }
+                                    break;
 
                                 // If it is a !
                                 case '!':
@@ -576,7 +577,7 @@ bc_execute(char* code)
                                         int jv = 0;
 
                                         // Allocate an array to hold the highest number of chars rquired by code length
-                                        char v[max_digits + 1];
+                                        char v[max_digits + 2];
 
                                         // Increment instruction pointer and retrieve the next char
                                         *ip = *ip + 1;
@@ -588,15 +589,30 @@ bc_execute(char* code)
                                         switch(c)
                                         {
                                             case '{':
-                                                // @todo Handle error conditions
                                                 for( *ip = *ip + 1, c = **ip; **ip != '}' && **ip != EOF && **ip < (code + codelen) && i < max_digits; *ip = *ip + 1, c = **ip, i++) {
+                                                    if(**ip > 57 || **ip < 48) {
+                                                        error = ERROR_UNKNOWN;
+                                                        break;
+                                                    }
                                                     v[i] = **ip;
                                                 }
                                                 while(++i <= max_digits) v[i] = '\0';
-                                                *ip = code + atoi(v) - 1;
+                                                if(!error) {
+                                                    *ip = code + atoi(v) - 1;
+                                                }
                                                 break;
                                             case '[':
-                                                // @todo Implement
+                                                for( *ip = *ip + 1, c = **ip; **ip != ']' && **ip != EOF && **ip < (code + codelen) && i < max_digits; *ip = *ip + 1, c = **ip, i++) {
+                                                    if(**ip != '-' && (**ip < 48 || **ip > 57)) {
+                                                        error = ERROR_UNKNOWN;
+                                                        break;
+                                                    }
+                                                    v[i] = **ip;
+                                                }
+                                                while(++i <= max_digits) v[i] = '\0';
+                                                if(!error) {
+                                                    *ip = *ip + atoi(v);
+                                                }
                                                 break;
                                         }
                                      }
@@ -775,7 +791,7 @@ void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
     printf("=======    Tape   ======\n");
     for( ; curCell < curCellCount ; curCell++) {
         if(tape[curCell] != (char) 0) {
-            // @todo Figure out why I'm doing ceil and log10 on curCellCount....I don't get it o.O
+            // Format the current cell with the proper number of columns for the number of digits
             printf("Cell #%*d: %02x\n", 0 - (int)ceil(log10(curCellCount)), curCell + 1, tape[curCell]);
         }
     }
