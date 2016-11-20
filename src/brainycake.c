@@ -135,7 +135,7 @@ bc_execute(char* code)
 
     // Set c to the value at ip, run while it is not at the end of the code
     //  After each loop, increase the instruction pointer by one and set c again
-    for( c = **ip ; (*ip - code) <= codelen; *ip = *ip+1, c = **ip) {
+    for( c = **ip ; (*ip - code) <= codelen && (!error); *ip = *ip+1, c = **ip) {
         // If we're running in verbose or superverbose mode
         if(verbose + superverbose && !step_by_step) {
             // Output debug information
@@ -358,6 +358,32 @@ bc_execute(char* code)
                                     mode = MODE_OUTPUT;
                                     break;
 
+                                // If it is a '2'
+                                case '2':
+                                     // Multiply register 5 by register 5
+                                     bc_reg_manip(&registry, &s, "5*5");
+                                     break;
+
+                                // If it is a '3'
+                                case '3':
+                                     {
+                                         signed int v1 = 0;
+                                         signed int v2 = 0;
+
+                                         // Preserve the original value of register 5
+                                         registry.getRegisterValue(&registry, '5', &v1);
+
+                                         // Multiply register 5 by register 5 
+                                         bc_reg_manip(&registry, &s, "5*5");
+
+                                         // Get the squared value of register 5
+                                         registry.getRegisterValue(&registry, '5', &v2);
+
+                                         // Set register 5 to the squared value times the original value
+                                         registry.setRegister(&registry, '5', v1*v2);
+                                     }
+                                     break;
+
                                 // Registers
                                 // If it is a $
                                 case '$':
@@ -377,8 +403,7 @@ bc_execute(char* code)
                                         {
                                             // If it's a 0
                                             case '0':
-                                                // Set error to ERROR_RO
-                                                error = ERROR_RO;
+                                                // NOP
                                                 break;
                                             // If it's 1-9
                                             case '1':
@@ -517,8 +542,11 @@ bc_execute(char* code)
 
                                 // If it is a @
                                 case '@':
-                                    // Set error to ERROR_PROG
-                                    error = ERROR_PROG;
+                                    // If the current cell on the tape is 0
+                                    if(!(**a)) {
+                                        // Set error to ERROR_PROG
+                                        error = ERROR_PROG;
+                                    }
                                     break;
 
                                 // If it is a ?
@@ -588,19 +616,29 @@ bc_execute(char* code)
                                         // Determine what to do based on the char
                                         switch(c)
                                         {
+                                            // If  it is a {, then we are doing an absolute jump
                                             case '{':
+                                                // Retrieve the next chars until max digits, EOF, or }
                                                 for( *ip = *ip + 1, c = **ip; **ip != '}' && **ip != EOF && **ip < (code + codelen) && i < max_digits; *ip = *ip + 1, c = **ip, i++) {
+                                                    // If the char is not numeric, set error condition and break out of loop
                                                     if(**ip > 57 || **ip < 48) {
                                                         error = ERROR_UNKNOWN;
                                                         break;
                                                     }
+                                                    // Otherwise add it to the array
                                                     v[i] = **ip;
                                                 }
+                                                // Until we fill up the remaining cells, set to null
                                                 while(++i <= max_digits) v[i] = '\0';
+
+                                                // If there's no error condition
                                                 if(!error) {
+                                                    // Set ip to code + value - 1 (to account for 0 index)
                                                     *ip = code + atoi(v) - 1;
                                                 }
                                                 break;
+
+                                            // If it is a [, then we are doing a relative jump
                                             case '[':
                                                 for( *ip = *ip + 1, c = **ip; **ip != ']' && **ip != EOF && **ip < (code + codelen) && i < max_digits; *ip = *ip + 1, c = **ip, i++) {
                                                     if(**ip != '-' && (**ip < 48 || **ip > 57)) {
@@ -687,6 +725,7 @@ bc_execute(char* code)
     return error;
 }
 
+// bc_reg_manip
 int
 bc_reg_manip(Registry* r, Stack* s, char* manip_command)
 {
@@ -740,12 +779,13 @@ bc_reg_manip(Registry* r, Stack* s, char* manip_command)
         case '-':
         case '%':
         case '|':
+        case '@':
         case '^':
             argc = 2;
             if(reg2 == '\0') reg2 = 't';
             if(reg1 == '\0') reg1 = 't';
-            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b' || reg1 == '@')) return ERROR_UNKREG;
-            if(reg2 == '\0' || !((reg2 > 48 && reg2 < 58) || reg2 == 'i' || reg2 == 't' || reg2 == 's' || reg2 == 'b' || reg2 == '@')) return ERROR_UNKREG;
+            if(reg1 == '\0' || !((reg1 > 48 && reg1 < 58) || reg1 == '&' || reg1 == '*' || reg1 == 'i' || reg1 == 't' || reg1 == 's' || reg1 == 'b')) return ERROR_UNKREG;
+            if(reg2 == '\0' || !((reg2 > 48 && reg2 < 58) || reg2 == '&' || reg2 == '*' || reg2 == 'i' || reg2 == 't' || reg2 == 's' || reg2 == 'b')) return ERROR_UNKREG;
             if(reg1 == '0' || reg2 == '0') return ERROR_RO;
             break;
         default:
@@ -758,11 +798,7 @@ bc_reg_manip(Registry* r, Stack* s, char* manip_command)
     return (*r).performOperation(r, op, argv, argc);
 }
 
-void
-bc_jump(char* code, int* codepos)
-{
-}
-
+// bc_push
 void
 bc_push(Stack* s, signed char* a, int p)
 {
@@ -774,6 +810,7 @@ bc_push(Stack* s, signed char* a, int p)
     s->push(s, v);
 }
 
+// bc_pop
 void bc_pop(Stack* s, signed char* a, int p)
 {
     int i = p;
@@ -785,6 +822,7 @@ void bc_pop(Stack* s, signed char* a, int p)
     }
 }
 
+// bc_debug
 void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
 {
     int curCell = 0;
@@ -798,6 +836,7 @@ void bc_debug(Stack* s, Registry* r, signed char* tape, int curCellCount)
     curCell = (signed char*) r->extregisters[TAPE_PTR] - tape;
     printf("Current Cell (%d/%d): %02x\n", curCell + 1, curCellCount, tape[curCell]);
     printf("======= Registers ======\n");
+    printf("|TP - %d|BP - %d|SP - %d|IP - %d|PP - %d|\n", TAPE_PTR, BASE_PTR, STACK_PTR, INSTRUCTION_PTR, POINTER_PTR);
     r->printRegisters(r);
     printf("========   Stack   =====\n");
     s->printStack(s);

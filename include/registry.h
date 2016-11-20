@@ -1,9 +1,10 @@
 #define CHAR_REG_COUNT  5
-#define EXT_REG_COUNT   9
-#define BASE_PTR        EXT_REG_COUNT - 4
-#define STACK_PTR       EXT_REG_COUNT - 3
-#define INSTRUCTION_PTR EXT_REG_COUNT - 2
-#define TAPE_PTR        EXT_REG_COUNT - 1
+#define EXT_REG_COUNT   10
+#define BASE_PTR        EXT_REG_COUNT - 5
+#define STACK_PTR       EXT_REG_COUNT - 4
+#define INSTRUCTION_PTR EXT_REG_COUNT - 3
+#define TAPE_PTR        EXT_REG_COUNT - 2
+#define POINTER_PTR     EXT_REG_COUNT - 1
 
 typedef struct {
      // Constructor and destructor
@@ -23,6 +24,7 @@ typedef struct {
      void (*printRegisters)(void*);
      int (*doArithmetic)(void*, char, signed int*, signed int*);
      int (*doLogic)(void*, char, signed int*, signed int*);
+     signed int* (*getEffectiveAddress)(void*, char);
      char (*checkExt)(void*, signed int*);
 } Registry;
 
@@ -40,3 +42,4 @@ int Registry_switchRegisters(void* r, signed int* reg1, signed int* reg2);
 int Registry_doArithmetic(void* r, char op, signed int* r1, signed int* r2);
 int Registry_doLogic(void* r, char op, signed int* r1, signed int* r2);
 char Registry_checkExt(void* r, signed int* reg);
+signed int* Registry_getEffectiveAddress(void* r, char regNum);

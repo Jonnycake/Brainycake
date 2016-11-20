@@ -57,12 +57,6 @@
     int bc_execute(char* code);
 
     /**
-     * bc_jump will move the code position depending on the current
-     * jump mode (relative or absolute)
-     */
-    void bc_jump(char* code, int* codepos);
-
-    /**
      * Brainycake Stack functions
      */
     void bc_push(Stack* s, signed char* a, int p);

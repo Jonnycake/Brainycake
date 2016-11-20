@@ -1,0 +1,13 @@
+|45|$1 # - put into register 1
+${5@i} # Copy a pointer to i to Register 5
+$0
+$0
+$0
+@
+$0
+${6,*} # Put the value of POINTER_PTR into register 6
+${*,5} # Put the value in 5 into the address in POINTER_PTR (points to itself)
+?
+${*,1} # Put the value in 1 into the address in POINTER_PTR (points to an old instruction pointer)
+${&,6} # Put the value in 6 (a pointe to POINTER_PTR) back into POINTER_PTR
+j{11}  # Jump to 23

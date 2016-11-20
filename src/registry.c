@@ -18,6 +18,7 @@ Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, sign
     this->doArithmetic = Registry_doArithmetic;
     this->doLogic = Registry_doLogic;
     this->checkExt = Registry_checkExt;
+    this->getEffectiveAddress = Registry_getEffectiveAddress;
 
     // 5 General Purpose char Registers
     this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(long int)));
@@ -26,6 +27,7 @@ Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, sign
     this->extregisters[STACK_PTR] = (signed int) sp;
     this->extregisters[INSTRUCTION_PTR] = (signed int) ip;
     this->extregisters[TAPE_PTR] = (signed int) tp;
+    this->extregisters[POINTER_PTR] = (signed int) &this->extregisters[POINTER_PTR];
 }
 
 void
@@ -147,6 +149,22 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                }
             }
             break;
+        case '@':
+            {
+                char reg1;
+                signed int* reg2;
+                if(argc != 2) {
+                    error = ERROR_SYNTAX;
+                }
+                else {
+                    reg1 = argv[0];
+                    reg2 = this->getEffectiveAddress(r, argv[1]);
+                }
+               if(error == ERROR_NORMAL) {
+                    this->setRegister(r, reg1, *reg2);
+               }
+            }
+            break;
         case 's':
             {
                 signed int* reg1;
@@ -220,9 +238,6 @@ Registry_translateRegister(void* r, char regNum)
         case 't':
             reg = (signed int*) this->extregisters[TAPE_PTR];
             break;
-	case '@':
-            reg = (signed int*) &(this->extregisters[TAPE_PTR]);
-            break;
         case 'i':
             reg = (signed int*) this->extregisters[INSTRUCTION_PTR];
             break;
@@ -232,7 +247,52 @@ Registry_translateRegister(void* r, char regNum)
         case 'b':
             reg = (signed int*) this->extregisters[BASE_PTR];
             break;
+        case '*':
+            reg = (signed int*) this->extregisters[POINTER_PTR];
+            break;
+        case '&':
+            reg = (signed int*) &(this->extregisters[POINTER_PTR]);
+            break;
     }
+    return reg;
+}
+
+signed int*
+Registry_getEffectiveAddress(void* r, char regNum)
+{
+    Registry* this = (Registry*) r;
+
+    signed int* reg = (signed int*) 0;
+    switch(regNum)
+    {
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+            reg = (signed int*) &(this->registers[regNum - 48]);
+            break;
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            reg = (signed int*) &(this->extregisters[regNum - 53]);
+            break;
+        case 't':
+            reg = (signed int*) &(this->extregisters[TAPE_PTR]);
+            break;
+        case 'i':
+            reg = (signed int*) &(this->extregisters[INSTRUCTION_PTR]);
+            break;
+        case 's':
+            reg = (signed int*) &(this->extregisters[STACK_PTR]);
+            break;
+        case 'b':
+            reg = (signed int*) &(this->extregisters[BASE_PTR]);
+            break;
+    }
+
     return reg;
 }
 
