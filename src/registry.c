@@ -93,7 +93,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                 else {
                     reg1 = this->translateRegister(r, argv[0]);
                     reg2 = this->translateRegister(r, argv[1]);
-                    if(reg1 < 0 || reg2 < 0) {
+                    if(reg1 == (signed int*) 0 || reg2 == (signed int*) 0) {
                         error = ERROR_UNKNOWN;
                     }
                 }
@@ -119,7 +119,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                 else {
                     reg1 = this->translateRegister(r, argv[0]);
                     reg2 = this->translateRegister(r, argv[1]);
-                    if(reg1 < 0 || reg2 < 0) {
+                    if(reg1 == (signed int*) 0 || reg2 == (signed int*) 0) {
                         error = ERROR_UNKNOWN;
                     }
                 }
@@ -143,6 +143,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                 else {
                     reg1 = argv[0];
                     reg2 = this->translateRegister(r, argv[1]);
+                    printf("Memory addreses: %x - %x\n", reg1, reg2);
                 }
                if(error == ERROR_NORMAL) {
                     this->setRegister(r, reg1, *reg2);
@@ -180,7 +181,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                 else {
                     reg1 = this->translateRegister(r, argv[0]);
                     reg2 = this->translateRegister(r, argv[1]);
-                    if(reg1 < 0 || reg2 < 0) {
+                    if(reg1 == (signed int*) 0 || reg2 == (signed int*) 0) {
                         error = ERROR_UNKNOWN;
                     }
                 }

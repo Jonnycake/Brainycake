@@ -122,6 +122,7 @@ ${"a}        Push the value in register a onto stack
 ${,a}        Copy the value from register a to tape
 ${a,}        Copy the value from the tape pointer to reg-
              ister a
+${a@b}       Set a as being a pointer to register b
 
 
 

@@ -5,20 +5,24 @@
 void Stack_push(void* s, int val)
 {
     Stack* this = (Stack*) s;
+    char *new_spp = (char*) *this->spp;
     **(this->spp) = val;
-    (*this->spp) += 1;
+    new_spp += sizeof(int);
+    (*this->spp) = new_spp;
 }
 
 void Stack_pop(void* s, int* tgt)
 {
     Stack* this = (Stack*) s;
-    (*this->spp)--;
+    char* new_spp = (char*) *this->spp;
+    new_spp -= sizeof(int);
+    (*this->spp) = new_spp;
     *tgt = **(this->spp);
 }
 void Stack_printStack(void* s)
 {
     Stack* this = (Stack*) s;
-    int* sp = *(this->spp) - 1;
+    int* sp = (char*) (*(this->spp)) - sizeof(int);
     int* bp = *(this->bpp);
     while(sp >= bp) {
         printf("   Stack %02d (%x): ", (int)(sp - bp), sp);

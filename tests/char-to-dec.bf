@@ -1,6 +1,7 @@
-this program prints ascii values of input chars
->>,
+# this program prints ascii values of input chars
+>>,+
 [
+  -
   [ -<++> 
   [ -<+> 
     [ -<+> 
@@ -13,10 +14,14 @@ this program prints ascii values of input chars
                   [ <[-]+> ->+< [<-] ]
   ]]]]]]]] >] 
 
-print digits
+# print digits
 <<[>++++++[<++++++++>-]<-.[-]<]
 
-print eol
+# print eol
 ++++++++++.[-]>>
-,]
+,
+# Take advantage of wrapping makes it so that it
+#  exits out on CTRL+D - remove the extra plus lol
++
+]
 -----------------------------------------------

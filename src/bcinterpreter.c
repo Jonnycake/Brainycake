@@ -106,8 +106,8 @@ int main(int argc, char** argv)
                 error = bc_execute(code);
             }
         }
+        free(code);
     }
-    free(code);
     return error;
 }
 

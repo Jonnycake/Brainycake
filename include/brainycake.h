@@ -15,9 +15,9 @@
     #define MAX_FILENAME      255       // Maximum length of a filename
 
     // Parsing modes
-    #define MODE_START          0
-    #define MODE_PREPROCESS     1
-    #define MODE_JUMP_ABS       2
+    #define MODE_START          0       // Very beginning of the process
+    #define MODE_PREPROCESS     1       // Preprocessing optimizations
+    #define MODE_JUMP_ABS       2       // Absolute jump
     #define MODE_JUMP_REL       3
     #define MODE_COMMENT_SL     4
     #define MODE_COMMENT_ML     5

@@ -1,7 +1,7 @@
 CC = "gcc"
-CCOPTS = -Wall -Wextra -I./include/
+CCOPTS = -Wall -Wextra -I./include/ `pkg-config --cflags glib-2.0`
 BINDIR = /usr/bin/
-LIBS = -lm
+LIBS = -lm `pkg-config --libs glib-2.0`
 all:
 	make build
 	make clean

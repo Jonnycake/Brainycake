@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <math.h>
 #include <signal.h>
+#include <glib-2.0/glib.h>
 
 #define MIN_LOAD 1
 #include <brainycake.h>
@@ -97,11 +98,34 @@ bc_include(char* file, char** functions, char** code, int cursize)
     FILE* f;
 }
 
+void bc_print(Registry* r, Stack* s)
+{
+    char* str = (char*) r->extregisters[0];
+    printf("%s", str);
+}
+
+void bc_call(GHashTable *function_table, char* function_name, Registry* r, Stack* s)
+{
+   void (*function)(Registry*, Stack*) = g_hash_table_lookup(function_table, function_name);
+    if(function) {
+        (*function)(r, s);
+    } else {
+        printf("The function '%s' is not defined!\n", function_name);
+    }
+}
+
+void bc_builtin(GHashTable **function_table)
+{
+    g_hash_table_insert(*function_table, "print", bc_print);
+}
+
 // bc_execute - Execute brainycake code
 int
 bc_execute(char* code)
 {
     // Define/initialize basic variables
+    GHashTable *function_table = g_hash_table_new(g_str_hash, g_str_equal);
+    bc_builtin(&function_table);
     int codelen = strlen(code);
     char c;
     char* loop_positions[MAX_LOOPS] = {0};
@@ -655,7 +679,27 @@ bc_execute(char* code)
                                         }
                                      }
                                      break;
+                                case '`':
+                                    {
+                                        gboolean success = 0;
+                                        char function[50] = { '\0' };
+                                        unsigned short int i = 0;
+                                        *ip = *ip + 1;
+                                        for( ; i < 50; i++) {
+                                            if(**ip == '`') {
+                                                bc_call(function_table, function, &registry, &s);
+                                                break;
+                                            } else {
+                                                function[i] = **ip;
+                                            }
+                                            *ip = *ip + 1;
+                                        }
+                                     }
+                                    break;
 
+                                case '(':
+                                     printf("Unimplemented........\n");
+                                     break;
                                 // OS Dependent
                                 // If it is a c
                                 case 'c':
@@ -720,6 +764,9 @@ bc_execute(char* code)
 
     // Free memory allocated for the tape
     free(tape);
+
+    // Destroy the function table
+    g_hash_table_destroy(function_table);
 
     // Return our error code
     return error;
@@ -805,6 +852,12 @@ bc_push(Stack* s, signed char* a, int p)
     int v = 0;
     int x = sizeof(int) - 1;
     for( ; x >= 0 ; x-- ) {
+        // @note Figure out why the & (0xff << (x*8)) is needed, this is a possible explanation (See #15)
+        // The resulting value on the right side is being silently converted
+        //  to an int, due to this, the | operation being done affects more
+        //  just a single byte of v.  By &'ing prior to doing the |, we zero
+        //  out the rest of the value....this is my hypothesis, will be
+        //  testing
         v |= (a[p++] << (x * 8)) & (0xff << (x*8));
     }
     s->push(s, v);
