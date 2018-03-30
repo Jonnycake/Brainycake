@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <registry.h>
 #include <bcerrors.h>
+#include <bcdebug.h>
 
 void
 Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, signed int* tp)
@@ -416,12 +417,12 @@ Registry_printRegisters(void* r)
     Registry* this = (Registry*) r;
     int i;
     for(i = 0; i < CHAR_REG_COUNT; i++) {
-        printf("Register %02d: %02x\n", i, this->registers[i]);
+        write_log("Register %02d: %02x\n", i, this->registers[i]);
     }
 
     for(i = 0; i < EXT_REG_COUNT; i++) {
         int x = sizeof(long int) - 1;
-        printf("Register %02d: ", CHAR_REG_COUNT + i);
+        write_log("Register %02d: ", CHAR_REG_COUNT + i);
         for( ; x >= 0 ; x-- ) {
             printf("%02x ", (this->extregisters[i] >> (x * 8)) & 0xFF);
         }
