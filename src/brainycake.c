@@ -104,19 +104,50 @@ void bc_print(Registry* r, Stack* s)
     printf("%s", str);
 }
 
-void bc_call(GHashTable *function_table, char* function_name, Registry* r, Stack* s)
+void bc_call(GHashTable *function_table, GHashTable *ud_function_table, char* function_name, Registry* r, Stack* s)
 {
-   void (*function)(Registry*, Stack*) = g_hash_table_lookup(function_table, function_name);
+    // So the idea is that we can pass the function name on call, that way we can just have a hash table of user defined functions that well interpret
+    void (*function)(Registry*, Stack*, char*, GHashTable*) = g_hash_table_lookup(function_table, function_name);
     if(function) {
-        (*function)(r, s);
+        (*function)(r, s, function_name, ud_function_table);
     } else {
         printf("The function '%s' is not defined!\n", function_name);
     }
 }
 
+// In order for this to actually work, we need to make bc_execute abstracted out a bit more....
+//   Well need to be able to parse the program and initialize memory separately otherwise we can't return data
+void bc_call_ud(Registry* r, Stack* s, char* function_name, GHashTable *ud_function_table)
+{
+   printf("Calling user defined function: %s\n", function_name);
+   char* code = g_hash_table_lookup(ud_function_table, function_name);
+   bc_execute(code);
+}
+
 void bc_builtin(GHashTable **function_table)
 {
     g_hash_table_insert(*function_table, "print", bc_print);
+}
+
+void init_memory(bcMemory* m, char* code)
+{
+    bcMemory mem = *m;
+    GHashTable *function_table = g_hash_table_new(g_str_hash, g_str_equal);
+    bc_builtin(&function_table);
+    int codelen = strlen(code);
+    char c;
+    char* loop_positions[MAX_LOOPS] = {0};
+    unsigned int numloops = 0;
+    unsigned int numloops_orig = 0;
+    signed char* tape = calloc(sizeof(char), INIT_CELL_COUNT);
+    signed char** a;
+    int curCellCount = INIT_CELL_COUNT;
+    int error = ERROR_NORMAL;
+    signed int* regArgv;
+    int regArgc = 0;
+    srand(time(NULL));
+    char** ip;
+    char step_by_step = 0;
 }
 
 // bc_execute - Execute brainycake code
@@ -126,6 +157,8 @@ bc_execute(char* code)
     // Define/initialize basic variables
     GHashTable *function_table = g_hash_table_new(g_str_hash, g_str_equal);
     bc_builtin(&function_table);
+    GHashTable *ud_function_table = g_hash_table_new(g_str_hash, g_str_equal);
+    printf("Code at: %x\n", code);
     int codelen = strlen(code);
     char c;
     char* loop_positions[MAX_LOOPS] = {0};
@@ -687,7 +720,7 @@ bc_execute(char* code)
                                         *ip = *ip + 1;
                                         for( ; i < 50; i++) {
                                             if(**ip == '`') {
-                                                bc_call(function_table, function, &registry, &s);
+                                                bc_call(function_table, ud_function_table, function, &registry, &s);
                                                 break;
                                             } else {
                                                 function[i] = **ip;
@@ -698,7 +731,28 @@ bc_execute(char* code)
                                     break;
 
                                 case '(':
-                                     printf("Unimplemented........\n");
+                                    {
+                                        gboolean success = 0;
+                                        char function[50] = { '\0' };
+                                        unsigned short int i = 0;
+                                        *ip = *ip + 1;
+                                        for( ; i < 50; i++) {
+                                            if(**ip == ':') {
+                                                g_hash_table_insert(function_table, function, bc_call_ud);
+                                                break;
+                                            } else {
+                                                function[i] = **ip;
+                                            }
+                                            *ip = *ip + 1;
+                                        }
+                                        char function_code[100] = { '\0' };
+                                        i = 0;
+                                        while(**ip != ')' && **ip != EOF) {
+                                            function_code[i++] = **ip;
+                                            *ip = *ip + 1; // Go to the end
+                                        }
+                                        g_hash_table_insert(ud_function_table, function, function_code);
+                                     }
                                      break;
                                 // OS Dependent
                                 // If it is a c

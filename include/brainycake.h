@@ -2,6 +2,7 @@
     #include <bcerrors.h>
     #include <stack.h>
     #include <registry.h>
+    #include <glib-2.0/glib.h>
 
     // Don't load this again
     #define BRAINYCAKE 1
@@ -33,6 +34,26 @@
     #define MODE_EXIT           15
     #define MODE_OPTIMIZE       16
     #define MODE_ERROR          17
+
+    /**
+     * The structure used for memory initialization
+     */
+     typedef struct {
+        GHashTable *function_table;
+        int codelen;
+        char c;
+        char* loop_positions[MAX_LOOPS];
+        unsigned int numloops;
+        unsigned int numloops_orig;
+        signed char* tape;
+        signed char** a;
+        int curCellCount;
+        int error;
+        signed int* regArgv;
+        int regArgc;
+        char** ip;
+        char step_by_step7;
+     } bcMemory;
 
     /**
      * bc_preprocess will take in mainfile, look for syntax errors,
@@ -73,3 +94,4 @@
 
      int bc_optimize(char** code, int codepos);
 #endif
+
