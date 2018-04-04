@@ -24,11 +24,11 @@ Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, sign
     // 5 General Purpose char Registers
     this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(long int)));
     this->extregisters = (signed long int*)&(this->registers[CHAR_REG_COUNT]);
-    this->extregisters[BASE_PTR] = (signed int) bp;
-    this->extregisters[STACK_PTR] = (signed int) sp;
-    this->extregisters[INSTRUCTION_PTR] = (signed int) ip;
-    this->extregisters[TAPE_PTR] = (signed int) tp;
-    this->extregisters[POINTER_PTR] = (signed int) &this->extregisters[POINTER_PTR];
+    this->extregisters[BASE_PTR] = (signed long int) bp;
+    this->extregisters[STACK_PTR] = (signed long int) sp;
+    this->extregisters[INSTRUCTION_PTR] = (signed long int) ip;
+    this->extregisters[TAPE_PTR] = (signed long int) tp;
+    this->extregisters[POINTER_PTR] = (signed long int) &this->extregisters[POINTER_PTR];
 }
 
 void
@@ -144,7 +144,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                 else {
                     reg1 = argv[0];
                     reg2 = this->translateRegister(r, argv[1]);
-                    printf("Memory addreses: %x - %x\n", reg1, reg2);
+                    printf("Memory addreses: %lx - %lx\n", (unsigned long int) reg1, (unsigned long int) reg2);
                 }
                if(error == ERROR_NORMAL) {
                     this->setRegister(r, reg1, *reg2);
@@ -417,14 +417,14 @@ Registry_printRegisters(void* r)
     Registry* this = (Registry*) r;
     int i;
     for(i = 0; i < CHAR_REG_COUNT; i++) {
-        write_log("Register %02d: %02x\n", i, this->registers[i]);
+        printf("Register %02d: %02x\n", i, this->registers[i]);
     }
 
     for(i = 0; i < EXT_REG_COUNT; i++) {
         int x = sizeof(long int) - 1;
-        write_log("Register %02d: ", CHAR_REG_COUNT + i);
+        printf("Register %02d: ", CHAR_REG_COUNT + i);
         for( ; x >= 0 ; x-- ) {
-            printf("%02x ", (this->extregisters[i] >> (x * 8)) & 0xFF);
+            printf("%02lx ", (this->extregisters[i] >> (x * 8)) & 0xFF);
         }
 
         printf("\n");

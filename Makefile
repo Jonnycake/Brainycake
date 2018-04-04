@@ -1,5 +1,5 @@
 CC = "gcc"
-CCOPTS = -Wall -Wextra -I./include/ `pkg-config --cflags glib-2.0`
+CCOPTS = -Wall -Wextra -I./include/ `pkg-config --cflags glib-2.0` -pedantic
 BINDIR = /usr/bin/
 LIBS = -lm `pkg-config --libs glib-2.0`
 TESTDEF = -D TEST
@@ -17,6 +17,15 @@ bin:
 build:
 	make lib
 	make bin
+
+registry:
+	${CC} ${CCOPTS} -c -o registry.o src/registry.c
+
+stack:
+	${CC} ${CCOPTS} -c -o stack.o src/stack.c
+
+brainycake:
+	${CC} ${CCOPTS} -c -o brainycake.o src/brainycake.c
 
 lib:
 	${CC} ${CCOPTS} -c -o brainycake.o src/brainycake.c
