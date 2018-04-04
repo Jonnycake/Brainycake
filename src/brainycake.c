@@ -243,7 +243,7 @@ bc_execute(char* code)
 #endif
     for( c = **ip ; (*ip - code) <= codelen && (!error); *ip = *ip+1, c = **ip) {
 #ifdef TEST
-        write_log("Char: %c; IP: %x; Code: %x; Codelen: %d\n");
+        write_log("Char: %c; IP: %x; Code: %x; Codelen: %d\n", c, (*ip - code), code, codelen);
 #endif
 
         // If we're running in verbose or superverbose mode
