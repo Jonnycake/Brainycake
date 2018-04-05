@@ -143,14 +143,25 @@ bc_include(char* file, char** functions, char** code, int cursize)
 
 void bc_print(Registry* r, Stack* s)
 {
+#ifdef TEST
+    write_log("Got into the built-in print function...\n");
+    r->printRegisters(r);
+#endif
     char* str = (char*) r->extregisters[0];
     printf("%s", str);
 }
 
 void bc_call(GHashTable *function_table, char* function_name, Registry* r, Stack* s)
 {
-   void (*function)(Registry*, Stack*) = g_hash_table_lookup(function_table, function_name);
+    void (*function)(Registry*, Stack*) = g_hash_table_lookup(function_table, function_name);
+#ifdef TEST
+    write_log("Attempting to call the built-in function '%s'\n", function_name);
+#endif
     if(function) {
+#ifdef TEST
+
+    write_log("The function '%s' exists.\n", function_name);
+#endif
         (*function)(r, s);
     } else {
         printf("The function '%s' is not defined!\n", function_name);
@@ -159,6 +170,9 @@ void bc_call(GHashTable *function_table, char* function_name, Registry* r, Stack
 
 void bc_builtin(GHashTable **function_table)
 {
+#ifdef TEST
+    write_log("Defining the built-in function print as %x in %x\n", bc_print, *function_table);
+#endif
     g_hash_table_insert(*function_table, "print", bc_print);
 }
 

@@ -40,7 +40,7 @@ h            Output hexadecimal equivilent of value at pointer
 d            Output decimal equivilent of value at pointer
 v            Toggle verbose mode
 ?            Breakpoint (with debug output)
-@            Signal error condition
+@            Signal error condition (only if the current cell is 0)
 !            Toggle step by step mode (with debug output if
              running in verbose mode)
 p0-9         Print value in specified register
@@ -244,3 +244,6 @@ Additional Notes:
           - 8 = 64 bit (8 byte)
     - May have to rethink working with registers however, could
       limit our ability to push extended registers onto the stack
+  - Triggering an error condition only if the current cell is 0
+    means that to force one, you must do ^@ (reset current cell to
+    0 then trigger the error condition)

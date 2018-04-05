@@ -49,7 +49,15 @@ int main(int argc, char** argv)
 
 #ifdef TEST
     write_log("Compiled in test mode (%s %s)...\n", __DATE__, __TIME__);
-    mainfile = "tests/hello-world.bc";
+
+    if(argc == 2) {
+        write_log("Using the file '%s' to run a test.\n", argv[1]);
+        mainfile = argv[1];
+    }
+    else {
+        write_log("Exactly 1 argument was not supplied, defaulting to use tests/hello-world.bc\n");
+        mainfile = "tests/hello-world.bc";
+    }
 
     write_log("Beginning preprocessing...\n");
     error = bc_preprocess(mainfile, &code);
