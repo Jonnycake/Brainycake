@@ -6,7 +6,7 @@ int main()
     char t[255];
     t[0] = 'a';
     Registry r;
-    Registry_construct(&r, (int*)0, (int*) 0, (int*)0, (int*) 0);
+    Registry_construct(&r, (int*)0, (int*) 0, (int*)0, (int*) 12341982347);
     r.setRegister(&r, '1', 200);
     r.setRegister(&r, '2', 45);
     int argv[2];
@@ -45,6 +45,12 @@ int main()
     printf("Not %d %d %d\n", r.extregisters[0], r.extregisters[1], error);
     error = r.performOperation(&r, 's', argv, 2);
     printf("Swap %d %d %d\n", r.extregisters[0], r.extregisters[1], error);
+    r.printRegisters(&r);
+    argv[0] = '5';
+    argv[1] = 't';
+    // Reproduce #17
+    printf("Copy t to 5...\n");
+    error = r.performOperation(&r, '@', argv, 2);
     r.printRegisters(&r);
     r.destruct(&r);
     return 0;
