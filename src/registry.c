@@ -46,7 +46,7 @@ Registry_setRegister(void* r, char reg, unsigned long int val)
 #endif
     Registry* this = (Registry*) r;
     int error = ERROR_NORMAL;
-    signed int* reg_ptr = this->translateRegister(r, reg);
+    signed long int* reg_ptr = this->translateRegister(r, reg);
     char* chardest = (char*) reg_ptr;
     if(this->checkExt(r, reg_ptr)) {
         *reg_ptr = (signed long int) val;
