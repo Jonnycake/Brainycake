@@ -153,20 +153,22 @@ void bc_print(Registry* r, Stack* s)
 
 void bc_call(GHashTable *function_table, GHashTable *ud_function_table, char* function_name, Registry* r, Stack* s)
 {
-    // So the idea is that we can pass the function name on call, that way we can just have a hash table of user defined functions that well interpret
+    // In the case of user defined functions, we'll have bc_call_ud returned to us  We will call that with the
+    // Function table and the function name amd it will- figure out what to do from there
     void (*function)(Registry*, Stack*, char*, GHashTable*) = g_hash_table_lookup(function_table, function_name);
 
 #ifdef TEST
     write_log("Attempting to call the built-in function '%s'\n", function_name);
 #endif
 
-	    if(function) {
+    if(function) {
 
 #ifdef TEST
-
-    write_log("The function '%s' exists.\n", function_name);
+        write_log("The function '%s' exists.\n", function_name);
 #endif
 
+        // So...in hindsight...by having this wrapper here, we're going to add a ton of unnecessary stack frames
+        // Maybe we should change that....
         (*function)(r, s, function_name, ud_function_table);
     } else {
         printf("The function '%s' is not defined!\n", function_name);
@@ -174,12 +176,20 @@ void bc_call(GHashTable *function_table, GHashTable *ud_function_table, char* fu
 }
 
 // In order for this to actually work, we need to make bc_execute abstracted out a bit more....
-//   Well need to be able to parse the program and initialize memory separately otherwise we can't return data
+//   We'll need to be able to parse the program and initialize memory separately otherwise we can't return data
 void bc_call_ud(Registry* r, Stack* s, char* function_name, GHashTable *ud_function_table)
 {
-   printf("Calling user defined function: %s\n", function_name);
-   char* code = g_hash_table_lookup(ud_function_table, function_name);
-   bc_execute(code);
+#ifdef TEST
+    write_log("Attempting to call user defined function (%lx) '%s'\n", function_name, function_name);
+#endif
+    char* code = g_hash_table_lookup(ud_function_table, function_name);
+
+    if(code) {
+#ifdef TEST
+        write_log("It's code (%lx) is: %s\n", code, code);
+#endif
+//        bc_execute(code);
+    }
 }
 
 void bc_builtin(GHashTable **function_table)
@@ -268,7 +278,7 @@ bc_execute(char* code)
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT, &registry.extregisters[STACK_PTR], &registry.extregisters[BASE_PTR]);
 #ifdef TEST
-    write_log("Done! Address: %x\n", &s);
+    write_log("Done! Address: %lx\n", &s);
 #endif
 
     // Set the tape pointer to point to the register
@@ -835,6 +845,9 @@ bc_execute(char* code)
                                     break;
 
                                 case '(':
+#ifdef TEST
+                                    write_log("Defining a function\n");
+#endif
                                     {
                                         gboolean success = 0;
                                         char function[50] = { '\0' };
@@ -849,12 +862,18 @@ bc_execute(char* code)
                                             }
                                             *ip = *ip + 1;
                                         }
+#ifdef TEST
+                                        write_log("The function is called '%s'\n", function);
+#endif
                                         char function_code[100] = { '\0' };
                                         i = 0;
                                         while(**ip != ')' && **ip != EOF) {
                                             function_code[i++] = **ip;
                                             *ip = *ip + 1; // Go to the end
                                         }
+#ifdef TEST
+                                        write_log("It's code (at %lx) is '%s'\n", function_code, function_code);
+#endif
                                         g_hash_table_insert(ud_function_table, function, function_code);
                                      }
                                      break;
