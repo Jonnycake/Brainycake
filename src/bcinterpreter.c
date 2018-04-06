@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <brainycake.h>
 /**
  * @todo Add/implement debugging instructions
@@ -42,10 +43,29 @@
 int main(int argc, char** argv)
 {
     int error = ERROR_NORMAL;
-    char* mainfile;
-    char* code;
+    char* mainfile = NULL;
+    char* code = NULL;
     extern char verbose, superverbose, debug, quiet, traditional, optimize, gdb;
 
+#ifdef TEST
+    write_log("Compiled in test mode (%s %s)...\n", __DATE__, __TIME__);
+
+    if(argc == 2) {
+        write_log("Using the file '%s' to run a test.\n", argv[1]);
+        mainfile = argv[1];
+    }
+    else {
+        write_log("Exactly 1 argument was not supplied, defaulting to use tests/hello-world.bc\n");
+        mainfile = "tests/hello-world.bc";
+    }
+
+    write_log("Beginning preprocessing...\n");
+    error = bc_preprocess(mainfile, &code);
+    if(!error) {
+        write_log("Beginning code execution...\n");
+        error = bc_execute(code);
+    }
+#else
     if(argc == 1) {
         printf("Syntax: %s [options] <filename>\nFor more information type %s --help\n", argv[0], argv[0]);
     }
@@ -96,18 +116,21 @@ int main(int argc, char** argv)
                 else {
                     printf("Invalid argument: '%s'\n", argv[x]);
                     error = ERROR_UNKNOWN;
-                    break;
+                    goto CLEAN;
                 }
             }
         }
+
+        error = bc_preprocess(mainfile, &code);
         if(!error) {
-            error = bc_preprocess(mainfile, &code);
-            if(!error) {
-                error = bc_execute(code);
-            }
+            error = bc_execute(code);
         }
-        free(code);
+
     }
+#endif
+
+CLEAN:
+    if(code != NULL) free(code);
     return error;
 }
 

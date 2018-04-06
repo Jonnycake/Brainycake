@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <registry.h>
 #include <bcerrors.h>
+#include <bcdebug.h>
 
 void
 Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, signed int* tp)
@@ -23,11 +24,11 @@ Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip, sign
     // 5 General Purpose char Registers
     this->registers = calloc(sizeof(char), CHAR_REG_COUNT + (EXT_REG_COUNT * sizeof(long int)));
     this->extregisters = (signed long int*)&(this->registers[CHAR_REG_COUNT]);
-    this->extregisters[BASE_PTR] = (signed int) bp;
-    this->extregisters[STACK_PTR] = (signed int) sp;
-    this->extregisters[INSTRUCTION_PTR] = (signed int) ip;
-    this->extregisters[TAPE_PTR] = (signed int) tp;
-    this->extregisters[POINTER_PTR] = (signed int) &this->extregisters[POINTER_PTR];
+    this->extregisters[BASE_PTR] = (signed long int) bp;
+    this->extregisters[STACK_PTR] = (signed long int) sp;
+    this->extregisters[INSTRUCTION_PTR] = (signed long int) ip;
+    this->extregisters[TAPE_PTR] = (signed long int) tp;
+    this->extregisters[POINTER_PTR] = (signed long int) &this->extregisters[POINTER_PTR];
 }
 
 void
@@ -38,17 +39,23 @@ Registry_destruct(void* r)
 }
 
 int
-Registry_setRegister(void* r, char reg, int val)
+Registry_setRegister(void* r, char reg, unsigned long int val)
 {
+#ifdef TEST
+    write_log("Setting register %c to %lx...\n", reg, val);
+#endif
     Registry* this = (Registry*) r;
     int error = ERROR_NORMAL;
-    signed int* reg_ptr = this->translateRegister(r, reg);
+    signed long int* reg_ptr = this->translateRegister(r, reg);
     char* chardest = (char*) reg_ptr;
     if(this->checkExt(r, reg_ptr)) {
-        *reg_ptr = (signed int) val;
+        *reg_ptr = (signed long int) val;
     } else {
         *chardest = (char) val;
     }
+#ifdef TEST
+    write_log("Returning error value: %d\n", error);
+#endif
     return error;
 }
 
@@ -143,7 +150,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                 else {
                     reg1 = argv[0];
                     reg2 = this->translateRegister(r, argv[1]);
-                    printf("Memory addreses: %x - %x\n", reg1, reg2);
+                    printf("Memory addreses: %lx - %lx\n", (unsigned long int) reg1, (unsigned long int) reg2);
                 }
                if(error == ERROR_NORMAL) {
                     this->setRegister(r, reg1, *reg2);
@@ -153,7 +160,7 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
         case '@':
             {
                 char reg1;
-                signed int* reg2;
+                signed long int* reg2;
                 if(argc != 2) {
                     error = ERROR_SYNTAX;
                 }
@@ -162,6 +169,9 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
                     reg2 = this->getEffectiveAddress(r, argv[1]);
                 }
                if(error == ERROR_NORMAL) {
+#ifdef TEST
+                    write_log("Calling setRegister with %c, %lx (%lx)...\n", reg1, reg2, *reg2);
+#endif
                     this->setRegister(r, reg1, *reg2);
                }
             }
@@ -261,9 +271,12 @@ Registry_translateRegister(void* r, char regNum)
 signed int*
 Registry_getEffectiveAddress(void* r, char regNum)
 {
+#ifdef TEST
+    write_log("Getting the effective address of %c...\n", regNum);
+#endif
     Registry* this = (Registry*) r;
 
-    signed int* reg = (signed int*) 0;
+    signed long int* reg = (signed int*) 0;
     switch(regNum)
     {
         case '0':
@@ -271,29 +284,34 @@ Registry_getEffectiveAddress(void* r, char regNum)
         case '2':
         case '3':
         case '4':
-            reg = (signed int*) &(this->registers[regNum - 48]);
+            reg = (signed long int*) &(this->registers[regNum - 48]);
             break;
         case '5':
         case '6':
         case '7':
         case '8':
         case '9':
-            reg = (signed int*) &(this->extregisters[regNum - 53]);
+            reg = (signed long int*) &(this->extregisters[regNum - 53]);
             break;
         case 't':
-            reg = (signed int*) &(this->extregisters[TAPE_PTR]);
+            reg = (signed long int*) &(this->extregisters[TAPE_PTR]);
             break;
         case 'i':
-            reg = (signed int*) &(this->extregisters[INSTRUCTION_PTR]);
+            reg = (signed long int*) &(this->extregisters[INSTRUCTION_PTR]);
             break;
         case 's':
-            reg = (signed int*) &(this->extregisters[STACK_PTR]);
+            reg = (signed long int*) &(this->extregisters[STACK_PTR]);
             break;
         case 'b':
-            reg = (signed int*) &(this->extregisters[BASE_PTR]);
+            reg = (signed long int*) &(this->extregisters[BASE_PTR]);
             break;
     }
-
+#ifdef TEST
+    write_log("The effective address is: %lx\n", reg);
+    if(reg) {
+        write_log("The value is: %lx\n", *(reg));
+    }
+#endif
     return reg;
 }
 
@@ -423,7 +441,7 @@ Registry_printRegisters(void* r)
         int x = sizeof(long int) - 1;
         printf("Register %02d: ", CHAR_REG_COUNT + i);
         for( ; x >= 0 ; x-- ) {
-            printf("%02x ", (this->extregisters[i] >> (x * 8)) & 0xFF);
+            printf("%02lx ", (this->extregisters[i] >> (x * 8)) & 0xFF);
         }
 
         printf("\n");

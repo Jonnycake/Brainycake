@@ -30,20 +30,41 @@ char gdb = 0;
 int
 bc_preprocess(char* mainfile, char** code)
 {
-    char c;
+    char c = NULL;
     char error = ERROR_NORMAL;
+
+#ifdef TEST
+    write_log("Opening file %s...\n", mainfile);
+#endif
     FILE* f = fopen(mainfile, "rb");
     if(!f) {
+#ifdef TEST
+        write_log("Error: ERROR_BADFILE\n");
+#endif
         return ERROR_BADFILE;
     }
+#ifdef TEST
+    write_log("Success!\n");
+#endif
+
     int codepos = 0;
     struct stat filestat;
     stat(mainfile, &filestat);
     int size = filestat.st_size;
+
+#ifdef TEST
+    write_log("File is %d bytes long, allocating %d + 1...\n", size, size);
+#endif
     *code = calloc(sizeof(char), size+1);
     mode = MODE_PREPROCESS;
+#ifdef TEST
+    write_log("Done; Mode: %d\n", mode);
+#endif
 
     while( !error && (c = fgetc(f)) != EOF) {
+#ifdef TEST
+    write_log("Mode: %d; Code Position: %d\n", mode, codepos);
+#endif
         switch(mode)
         {
             case MODE_COMMENT_ML:
@@ -57,8 +78,15 @@ bc_preprocess(char* mainfile, char** code)
                  }
                  break;
             case MODE_OUTPUT:
+#ifdef TEST
+                 write_log("We are in output mode, adding '%c' to code...\n", c);
+#endif
                  (*code)[codepos++] = c;
                  if( c == '\\' ) {
+#ifdef TEST
+                     write_log("That was the end of the output block, setting"
+                               " mode back to preprocessing...\n");
+#endif
                      mode = MODE_PREPROCESS;
                  }
                  break;
@@ -80,15 +108,30 @@ bc_preprocess(char* mainfile, char** code)
                             && mode != MODE_COMMENT_SL
                             && mode != MODE_COMMENT_ML
                         ) {
+#ifdef TEST
+                            write_log("Not whitespace/comment or we are in output mode,"
+                                      " adding char '%c'to code...\n", c);
+#endif
                             (*code)[codepos++] = c;
                         }
                         break;
                 }
         }
     }
+
+#ifdef TEST
+    write_log("Finished loading code into memory, optimize is set to: %d\n", optimize);
+#endif
     if(optimize) {
+#ifdef TEST
+        write_log("Beginning optimization...\n");
+#endif
         bc_optimize(code, codepos);
+#ifdef TEST
+        write_log("Done.\n");
+#endif
     }
+
     return error;
 }
 
@@ -100,6 +143,10 @@ bc_include(char* file, char** functions, char** code, int cursize)
 
 void bc_print(Registry* r, Stack* s)
 {
+#ifdef TEST
+    write_log("Got into the built-in print function...\n");
+    r->printRegisters(r);
+#endif
     char* str = (char*) r->extregisters[0];
     printf("%s", str);
 }
@@ -108,7 +155,18 @@ void bc_call(GHashTable *function_table, GHashTable *ud_function_table, char* fu
 {
     // So the idea is that we can pass the function name on call, that way we can just have a hash table of user defined functions that well interpret
     void (*function)(Registry*, Stack*, char*, GHashTable*) = g_hash_table_lookup(function_table, function_name);
-    if(function) {
+
+#ifdef TEST
+    write_log("Attempting to call the built-in function '%s'\n", function_name);
+#endif
+
+	    if(function) {
+
+#ifdef TEST
+
+    write_log("The function '%s' exists.\n", function_name);
+#endif
+
         (*function)(r, s, function_name, ud_function_table);
     } else {
         printf("The function '%s' is not defined!\n", function_name);
@@ -126,6 +184,9 @@ void bc_call_ud(Registry* r, Stack* s, char* function_name, GHashTable *ud_funct
 
 void bc_builtin(GHashTable **function_table)
 {
+#ifdef TEST
+    write_log("Defining the built-in function print as %x in %x\n", bc_print, *function_table);
+#endif
     g_hash_table_insert(*function_table, "print", bc_print);
 }
 
@@ -155,6 +216,11 @@ int
 bc_execute(char* code)
 {
     // Define/initialize basic variables
+#ifdef TEST
+     write_log("MAX_LOOPS: %d\n");
+     write_log("INIT_CELL_COUNT: %d\n", INIT_CELL_COUNT);
+#endif
+
     GHashTable *function_table = g_hash_table_new(g_str_hash, g_str_equal);
     bc_builtin(&function_table);
     GHashTable *ud_function_table = g_hash_table_new(g_str_hash, g_str_equal);
@@ -164,7 +230,15 @@ bc_execute(char* code)
     char* loop_positions[MAX_LOOPS] = {0};
     unsigned int numloops = 0;
     unsigned int numloops_orig = 0;
+
+#ifdef TEST
+    write_log("Allocating space for tape...\n");
+#endif
     signed char* tape = calloc(sizeof(char), INIT_CELL_COUNT);
+#ifdef TEST
+    write_log("Done! Address: %x\n", tape);
+#endif
+
     signed char** a;
     int curCellCount = INIT_CELL_COUNT;
     int error = ERROR_NORMAL;
@@ -178,21 +252,51 @@ bc_execute(char* code)
     mode = MODE_EXEC;
 
     // Initialize memory objects
+#ifdef TEST
+    write_log("Creating a registry object; code at %x, tape at %x...\n", code, tape);
+#endif
     Registry registry;
     Registry_construct(&registry, (int*) 0, (int*) 0, (int*) code, (int*)tape);
+#ifdef TEST
+    write_log("Done! Address: %x\n", &registry);
+#endif
+
+#ifdef TEST
+    write_log("Creating stack object...STACK_PTR = %d; BASE_PTR = %d; extregisters = %x...\n",
+              STACK_PTR, BASE_PTR, &registry.extregisters);
+#endif
     Stack s;
     Stack_construct(&s, MAX_STACK_HEIGHT, &registry.extregisters[STACK_PTR], &registry.extregisters[BASE_PTR]);
+#ifdef TEST
+    write_log("Done! Address: %x\n", &s);
+#endif
 
     // Set the tape pointer to point to the register
+#ifdef TEST
+    write_log("Setting the tape pointer to point to the register at address: %x\n",
+              &(registry.extregisters[TAPE_PTR]));
+#endif
     a = (char**)(&(registry.extregisters[TAPE_PTR]));
 
     // Set the instruction pointer to point to the register
+#ifdef TEST
+    write_log("Setting the instruction pointer to point to the register at address: %x\n",
+              &(registry.extregisters[INSTRUCTION_PTR]));
+#endif
     ip = (char**) (&(registry.extregisters[INSTRUCTION_PTR]));
 
 
     // Set c to the value at ip, run while it is not at the end of the code
     //  After each loop, increase the instruction pointer by one and set c again
+#ifdef TEST
+    write_log("Instruction pointer started at: %x\n", *ip);
+    registry.printRegisters(&registry);
+#endif
     for( c = **ip ; (*ip - code) <= codelen && (!error); *ip = *ip+1, c = **ip) {
+#ifdef TEST
+        write_log("Char: %c; IP: %x; Code: %x; Codelen: %d\n", c, (*ip - code), code, codelen);
+#endif
+
         // If we're running in verbose or superverbose mode
         if(verbose + superverbose && !step_by_step) {
             // Output debug information

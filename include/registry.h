@@ -16,7 +16,7 @@ typedef struct {
      signed long int* extregisters;
 
      // Methods
-     int (*setRegister)(void*, char, int);
+     int (*setRegister)(void*, char, unsigned long int);
      int (*performOperation)(void*, char, signed int*, int);
      int (*getRegisterValue)(void*, char, signed int*);
      signed int* (*translateRegister)(void*, char);
@@ -33,7 +33,7 @@ void Registry_construct(void* r, signed int* bp, signed int* sp, signed int* ip,
 void Registry_destruct(void* r);
 
 // Registry object methods
-int Registry_setRegister(void* r, char reg, int val);
+int Registry_setRegister(void* r, char reg, unsigned long int val);
 int Registry_performOperation(void* r, char op, signed int* argv, int argc);
 int Registry_getRegisterValue(void* r, char reg, signed int* target);
 signed int* Registry_translateRegister(void* r, char regNum);
