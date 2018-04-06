@@ -23,6 +23,10 @@ char superverbose = 0;
 char traditional = 0;
 char optimize = 0;
 char gdb = 0;
+char *function_plt;
+
+// Initialize the offset as 1, so that we don't match NULL...
+int plt_offset = 1;
 
 /**
  * Preprocesses the main code file using bc_include() for includes
@@ -182,9 +186,13 @@ void bc_call_ud(Registry* r, Stack* s, char* function_name, GHashTable *ud_funct
 #ifdef TEST
     write_log("Attempting to call user defined function (%lx) '%s'\n", function_name, function_name);
 #endif
-    char* code = g_hash_table_lookup(ud_function_table, function_name);
+    char* code = NULL;
+    int function_offset = g_hash_table_lookup(ud_function_table, function_name);
+    if(function_offset != NULL) {
+        code = function_plt + function_offset;
+    }
 
-    if(code) {
+    if(code != NULL) {
 #ifdef TEST
         write_log("It's code (%lx) is: %s\n", code, code);
 #endif
@@ -240,6 +248,7 @@ bc_execute(char* code)
     char* loop_positions[MAX_LOOPS] = {0};
     unsigned int numloops = 0;
     unsigned int numloops_orig = 0;
+    function_plt = (char*) calloc(sizeof(char), 255);
 
 #ifdef TEST
     write_log("Allocating space for tape...\n");
@@ -856,6 +865,7 @@ bc_execute(char* code)
                                         for( ; i < 50; i++) {
                                             if(**ip == ':') {
                                                 g_hash_table_insert(function_table, function, bc_call_ud);
+                                                *ip = *ip + 1;
                                                 break;
                                             } else {
                                                 function[i] = **ip;
@@ -865,16 +875,21 @@ bc_execute(char* code)
 #ifdef TEST
                                         write_log("The function is called '%s'\n", function);
 #endif
-                                        char function_code[100] = { '\0' };
-                                        i = 0;
+                                        int function_offset = plt_offset;
                                         while(**ip != ')' && **ip != EOF) {
-                                            function_code[i++] = **ip;
+#ifdef TEST
+                                            write_log("Attempting to assign '%c' to %lx\n", **ip, function_plt + plt_offset);
+#endif
+                                            function_plt[plt_offset++] = **ip;
                                             *ip = *ip + 1; // Go to the end
                                         }
+
+                                        // Increment once more for a null byte
+                                        plt_offset++;
 #ifdef TEST
-                                        write_log("It's code (at %lx) is '%s'\n", function_code, function_code);
+                                        write_log("It's code (at %lx) is '%s'\n", function_plt, (char*) (function_plt + function_offset));
 #endif
-                                        g_hash_table_insert(ud_function_table, function, function_code);
+                                        g_hash_table_insert(ud_function_table, function, function_offset);
                                      }
                                      break;
                                 // OS Dependent
@@ -941,6 +956,9 @@ bc_execute(char* code)
 
     // Free memory allocated for the tape
     free(tape);
+
+    // Free our function plt
+    free(function_plt);
 
     // Destroy the function table
     g_hash_table_destroy(function_table);
