@@ -225,11 +225,11 @@ Registry_performOperation(void* r, char op, signed int* argv, int argc)
     return error;
 }
 
-signed int*
+signed long int*
 Registry_translateRegister(void* r, char regNum)
 {
     Registry* this = (Registry*) r;
-    signed int* reg = (signed int*)-1;
+    signed long int* reg = (signed long int*)-1;
     switch(regNum)
     {
         case '0':
@@ -237,38 +237,38 @@ Registry_translateRegister(void* r, char regNum)
         case '2':
         case '3':
         case '4':
-            reg = (signed int*) &(this->registers[regNum - 48]);
+            reg = (signed long int*) &(this->registers[regNum - 48]);
             break;
         case '5':
         case '6':
         case '7':
         case '8':
         case '9':
-            reg = (signed int*) &(this->extregisters[regNum - 53]);
+            reg = (signed long int*) &(this->extregisters[regNum - 53]);
             break;
         case 't':
-            reg = (signed int*) this->extregisters[TAPE_PTR];
+            reg = (signed long int*) this->extregisters[TAPE_PTR];
             break;
         case 'i':
-            reg = (signed int*) this->extregisters[INSTRUCTION_PTR];
+            reg = (signed long int*) this->extregisters[INSTRUCTION_PTR];
             break;
         case 's':
-            reg = (signed int*) this->extregisters[STACK_PTR];
+            reg = (signed long int*) this->extregisters[STACK_PTR];
             break;
         case 'b':
-            reg = (signed int*) this->extregisters[BASE_PTR];
+            reg = (signed long int*) this->extregisters[BASE_PTR];
             break;
         case '*':
-            reg = (signed int*) this->extregisters[POINTER_PTR];
+            reg = (signed long int*) this->extregisters[POINTER_PTR];
             break;
         case '&':
-            reg = (signed int*) &(this->extregisters[POINTER_PTR]);
+            reg = (signed long int*) &(this->extregisters[POINTER_PTR]);
             break;
     }
     return reg;
 }
 
-signed int*
+signed long int*
 Registry_getEffectiveAddress(void* r, char regNum)
 {
 #ifdef TEST
@@ -276,7 +276,7 @@ Registry_getEffectiveAddress(void* r, char regNum)
 #endif
     Registry* this = (Registry*) r;
 
-    signed long int* reg = (signed int*) 0;
+    signed long int* reg = (signed long int*) 0;
     switch(regNum)
     {
         case '0':

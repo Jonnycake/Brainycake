@@ -7,6 +7,7 @@
 #include <math.h>
 #include <signal.h>
 #include <glib-2.0/glib.h>
+#include <time.h>
 
 #define MIN_LOAD 1
 #include <brainycake.h>
@@ -23,7 +24,12 @@ char superverbose = 0;
 char traditional = 0;
 char optimize = 0;
 char gdb = 0;
+
+// Global plt symbol
 char *function_plt;
+
+// Global plt size
+int plt_size = 0;
 
 // Initialize the offset as 1, so that we don't match NULL...
 int plt_offset = 1;

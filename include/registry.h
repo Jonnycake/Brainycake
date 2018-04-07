@@ -19,12 +19,12 @@ typedef struct {
      int (*setRegister)(void*, char, unsigned long int);
      int (*performOperation)(void*, char, signed int*, int);
      int (*getRegisterValue)(void*, char, signed int*);
-     signed int* (*translateRegister)(void*, char);
+     signed long int* (*translateRegister)(void*, char);
      int (*switchRegisters)(void*, signed int* reg1, signed int* reg2);
      void (*printRegisters)(void*);
      int (*doArithmetic)(void*, char, signed int*, signed int*);
      int (*doLogic)(void*, char, signed int*, signed int*);
-     signed int* (*getEffectiveAddress)(void*, char);
+     signed long int* (*getEffectiveAddress)(void*, char);
      char (*checkExt)(void*, signed int*);
 } Registry;
 
@@ -36,10 +36,10 @@ void Registry_destruct(void* r);
 int Registry_setRegister(void* r, char reg, unsigned long int val);
 int Registry_performOperation(void* r, char op, signed int* argv, int argc);
 int Registry_getRegisterValue(void* r, char reg, signed int* target);
-signed int* Registry_translateRegister(void* r, char regNum);
+signed long int* Registry_translateRegister(void* r, char regNum);
 void Registry_printRegisters(void* r);
 int Registry_switchRegisters(void* r, signed int* reg1, signed int* reg2);
 int Registry_doArithmetic(void* r, char op, signed int* r1, signed int* r2);
 int Registry_doLogic(void* r, char op, signed int* r1, signed int* r2);
 char Registry_checkExt(void* r, signed int* reg);
-signed int* Registry_getEffectiveAddress(void* r, char regNum);
+signed long int* Registry_getEffectiveAddress(void* r, char regNum);
